@@ -1,4 +1,4 @@
-# intellij-generate-all-getter
+# Generate All Getter
 
 ![Build](https://github.com/LiLittleCat/intellij-generate-all-getter/workflows/Build/badge.svg)
 [![Version](https://img.shields.io/jetbrains/plugin/v/PLUGIN_ID.svg)](https://plugins.jetbrains.com/plugin/PLUGIN_ID)
@@ -15,12 +15,17 @@
 - [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
 
 <!-- Plugin description -->
-This Fancy IntelliJ Platform Plugin is going to be your implementation of the brilliant ideas that you have.
 
-This specific section is a source for the [plugin.xml](/src/main/resources/META-INF/plugin.xml) file which will be extracted by the [Gradle](/build.gradle.kts) during the build process.
+[comment]: <> (This Fancy IntelliJ Platform Plugin is going to be your implementation of the brilliant ideas that you have.)
 
-To keep everything working, do not remove `<!-- ... -->` sections. 
+[comment]: <> (This specific section is a source for the [plugin.xml]&#40;/src/main/resources/META-INF/plugin.xml&#41; file which will be extracted by the [Gradle]&#40;/build.gradle.kts&#41; during the build process.)
+
+[comment]: <> (To keep everything working, do not remove `<!-- ... -->` sections. )
+
+Generate all getter and setter for all fields in current class.
 <!-- Plugin description end -->
+
+## Usage
 
 ## Installation
 
