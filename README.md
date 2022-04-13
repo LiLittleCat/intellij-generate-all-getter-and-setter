@@ -1,4 +1,4 @@
-# Generate All Getter
+# Generate All Getter And Setter
 
 ![Build](https://github.com/LiLittleCat/intellij-generate-all-getter/workflows/Build/badge.svg)
 [![Version](https://img.shields.io/jetbrains/plugin/v/PLUGIN_ID.svg)](https://plugins.jetbrains.com/plugin/PLUGIN_ID)
