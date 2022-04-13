@@ -44,3 +44,10 @@ Generate all getter and setter for all fields in current class.
 Plugin based on the [IntelliJ Platform Plugin Template][template].
 
 [template]: https://github.com/JetBrains/intellij-platform-plugin-template
+
+
+## More info
+https://www.plugin-dev.com/intellij/editor/postfix-template-provider/ 
+
+https://github.com/tokuhirom/assertj-postfix-plugin/blob/53afceb534/src/main/java/me/geso/assertj_postfix_plugin/AssertJPostfixTemplateProvider.java
+
