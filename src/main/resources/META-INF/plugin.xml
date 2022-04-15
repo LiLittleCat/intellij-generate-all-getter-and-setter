@@ -3,7 +3,7 @@
     <id>com.lilittlecat.generate-all-getter-and-setter</id>
     <name>Generate All Getter And Setter</name>
     <vendor email="lilittlecat@qq.com" url="https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter">LiLittleCat</vendor>
-    <idea-version since-build="171.0"/>
+    <idea-version since-build="192.0"/>
     <description>
         <![CDATA[
         <html>
@@ -15,6 +15,7 @@
         </html>]]>
     </description>
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.template.postfixTemplateProvider language="JAVA"
