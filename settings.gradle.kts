@@ -1,1 +1,1 @@
-rootProject.name = "intellij-generate-all-getter"
+rootProject.name = "intellij-generate-all-getter-and-setter"

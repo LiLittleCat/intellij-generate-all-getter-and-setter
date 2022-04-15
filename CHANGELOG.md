@@ -1,6 +1,6 @@
 <!-- Keep a Changelog guide -> https://keepachangelog.com -->
 
-# intellij-generate-all-getter Changelog
+# intellij-generate-all-getter-and-setter Changelog
 
 ## [Unreleased]
 ### Added
