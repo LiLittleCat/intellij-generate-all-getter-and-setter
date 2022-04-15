@@ -43,4 +43,9 @@ public class User {
 //    public void setThings(List<T> things) {
 //        this.things = things;
 //    }
+
+    public static void main(String[] args) {
+        User user = new User();
+
+    }
 }

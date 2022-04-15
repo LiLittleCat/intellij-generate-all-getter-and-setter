@@ -19,6 +19,6 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.template.postfixTemplateProvider language="JAVA"
-         implementationClass="com.lilittlecat.plugin.provider.GenerateAllGetterTemplateProvider"/>
+         implementationClass="com.lilittlecat.plugin.provider.GenerateAllGetterAndSetterPostfixTemplateProvider"/>
     </extensions>
 </idea-plugin>
