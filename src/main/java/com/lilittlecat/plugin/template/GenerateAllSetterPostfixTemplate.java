@@ -7,14 +7,17 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
+import com.lilittlecat.plugin.util.PsiClassUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.intellij.codeInsight.template.postfix.util.JavaPostfixTemplatesUtils.selectorTopmost;
-import static com.intellij.psi.PsiModifier.*;
-import static com.lilittlecat.plugin.common.Constants.*;
+import static com.lilittlecat.plugin.common.Constants.ALL_SETTER_INFO;
+import static com.lilittlecat.plugin.common.Constants.ALL_SETTER_SUFFIX;
+import static com.lilittlecat.plugin.util.PsiClassUtil.*;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * @author LiLittleCat
@@ -50,45 +53,34 @@ public class GenerateAllSetterPostfixTemplate extends PostfixTemplateWithExpress
         Document document = editor.getDocument();
         // delete old text in current row.
         document.deleteString(expression.getTextRange().getStartOffset(), expression.getTextRange().getEndOffset());
-        try {
-            PsiType type = ((PsiExpression) expression).getType();
-            assert type != null;
-            String className = type.getCanonicalText();
-            PsiClass psiClass = JavaPsiFacade.getInstance(expression.getProject()).findClass(className, expression.getResolveScope());
-            assert psiClass != null;
-            PsiField[] fieldList = psiClass.getAllFields();
-            // variables will be added in template.
-            List<String> variableList = new ArrayList<>();
-            StringBuilder builder = new StringBuilder();
-            for (PsiField field : fieldList) {
-                String fieldName = field.getName();
-                assert fieldName != null;
-                variableList.add(fieldName);
-                PsiModifierList modifierList = field.getModifierList();
-                // check if field is static or final or transient or null.
-                if (modifierList == null
-                        || modifierList.hasModifierProperty(FINAL)
-                        || modifierList.hasModifierProperty(STATIC)
-                        || modifierList.hasModifierProperty(SYNCHRONIZED)) {
-                    continue;
-                }
-                builder.append(expression.getText()).append(".set").append(getFirstCharUpperCase(fieldName))
-                        .append("($").append(fieldName).append("$);\n");
-            }
-            builder.append("$END$");
-            Template template = manager.createTemplate(getId(), "", builder.toString());
-            for (String variable : variableList) {
-                template.addVariable(variable, variable, variable, true);
-            }
-            template.setToReformat(true);
-            manager.startTemplate(editor, template);
-        } catch (Exception e) {
-            e.printStackTrace();
+        PsiType type = ((PsiExpression) expression).getType();
+        if (type == null) {
+            return;
         }
-    }
-
-
-    private String getFirstCharUpperCase(String fieldName) {
-        return fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+        String className = type.getCanonicalText();
+        PsiClass psiClass = JavaPsiFacade.getInstance(expression.getProject()).findClass(className, expression.getResolveScope());
+        if (psiClass == null) {
+            return;
+        }
+        PsiField[] fields = psiClass.getAllFields();
+        List<PsiMethod> setterMethods = PsiClassUtil.getMethods(psiClass, method -> isValidSetterMethod(method, fields));
+        // variables will be added in template.
+        List<String> variableList = new ArrayList<>();
+        StringBuilder builder = new StringBuilder();
+        for (PsiMethod setterMethod : setterMethods) {
+            String fieldName = getFieldNameInMethod(setterMethod, SET);
+            if (isNotBlank(fieldName)) {
+                variableList.add(fieldName);
+            }
+            builder.append(expression.getText()).append(".").append(setterMethod.getName())
+                    .append("($").append(fieldName).append("$);\n");
+        }
+        builder.append("$END$");
+        Template template = manager.createTemplate(getId(), "", builder.toString());
+        for (String variable : variableList) {
+            template.addVariable(variable, variable, variable, true);
+        }
+        template.setToReformat(true);
+        manager.startTemplate(editor, template);
     }
 }
