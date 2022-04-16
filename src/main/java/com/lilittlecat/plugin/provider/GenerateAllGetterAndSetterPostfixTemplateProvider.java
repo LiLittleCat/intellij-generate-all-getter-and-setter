@@ -3,6 +3,7 @@ package com.lilittlecat.plugin.provider;
 import com.intellij.codeInsight.template.postfix.templates.JavaPostfixTemplateProvider;
 import com.intellij.codeInsight.template.postfix.templates.PostfixTemplate;
 import com.lilittlecat.plugin.template.GenerateAllGetterPostfixTemplate;
+import com.lilittlecat.plugin.template.GenerateAllSetterPostfixTemplate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -19,6 +20,7 @@ public class GenerateAllGetterAndSetterPostfixTemplateProvider extends JavaPostf
     public GenerateAllGetterAndSetterPostfixTemplateProvider() {
         templates = new HashSet<>();
         templates.add(new GenerateAllGetterPostfixTemplate());
+        templates.add(new GenerateAllSetterPostfixTemplate());
     }
 
     @Override

@@ -30,7 +30,7 @@ public class GenerateAllGetterPostfixTemplateTest extends LightJavaCodeInsightFi
 
     public void testWrapWithArray() throws Exception {
         assertWrapping("test",
-                "user.getaa\t");
+                "user.setaa\t");
     }
 
     /**
