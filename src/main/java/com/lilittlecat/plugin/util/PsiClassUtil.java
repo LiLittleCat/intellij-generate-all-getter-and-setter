@@ -120,6 +120,10 @@ public class PsiClassUtil {
         return fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
     }
 
+    public static String getFirstCharLowerCase(String fieldName) {
+        return fieldName.substring(0, 1).toLowerCase() + fieldName.substring(1);
+    }
+
     /**
      * Get field name in method name
      *
@@ -131,7 +135,7 @@ public class PsiClassUtil {
         if (method == null || isBlank(prefix)) {
             return "";
         }
-        return method.getName().replaceFirst(prefix, "").toLowerCase(Locale.ROOT);
+        return getFirstCharLowerCase(method.getName().replaceFirst(prefix, ""));
     }
 
 
