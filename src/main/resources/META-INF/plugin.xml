@@ -2,23 +2,41 @@
 <idea-plugin>
     <id>com.lilittlecat.generate-all-getter-and-setter</id>
     <name>Generate All Getter And Setter</name>
-    <vendor email="lilittlecat@qq.com" url="https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter">LiLittleCat</vendor>
+    <vendor email="lilittlecat@qq.com" url="https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter">
+        LiLittleCat
+    </vendor>
     <idea-version since-build="192.0"/>
     <description>
         <![CDATA[
-        <html>
-            <body>
-                <p>
-                    Generate all getter and setter for all fields in current class.
-                </p>
-            </body>
-        </html>]]>
+<p><a href="https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter" target="_blank">GitHub</a>
+            |&nbsp<a href="https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues" target="_blank">Issues</a></p>
+                    <p>Generates all getter and setter methods for POJO use
+                        <a href="https://www.jetbrains.com/help/idea/settings-postfix-completion.html" target="_blank" >postfix completion</a> like <kbd>.var</kbd>. <br/>
+                      </p>
+
+                      <strong>Usage</strong>
+                      <ul>
+                          <li>Use <kbd>.allget</kbd> to generate all getter methods for POJO.</li>
+                          <li>Use <kbd>.allset</kbd> to generate all setter methods without default value for POJO.</li>
+                          <li>Use <kbd>.allsetv</kbd> to generate all setter methods with default value for POJO.</li>
+                      </ul>
+
+                      <p>使用类似 <kbd>.var</kbd> 的后缀模板生成 POJO 的所有 getter 和 setter 方法。</p>
+
+                      <strong>使用方法</strong>
+                      <ul>
+                          <li>使用 <kbd>.allget</kbd> 生成所有 getter 方法。</li>
+                          <li>使用 <kbd>.allset</kbd> 生成所有不带默认值的 setter 方法。</li>
+                          <li>使用 <kbd>.allsetv</kbd> 生成所有带默认值的 setter 方法。</li>
+                      </ul>
+
+]]>
     </description>
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.template.postfixTemplateProvider language="JAVA"
-         implementationClass="com.lilittlecat.plugin.provider.GenerateAllGetterAndSetterPostfixTemplateProvider"/>
+                                                      implementationClass="com.lilittlecat.plugin.provider.GenerateAllGetterAndSetterPostfixTemplateProvider"/>
     </extensions>
 </idea-plugin>
