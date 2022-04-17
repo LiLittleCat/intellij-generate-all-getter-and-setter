@@ -23,9 +23,9 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * @author LiLittleCat
  * @since 4/15/2022
  */
-public class GenerateAllSetterPostfixTemplate extends PostfixTemplateWithExpressionSelector {
+public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends PostfixTemplateWithExpressionSelector {
 
-    public GenerateAllSetterPostfixTemplate() {
+    public GenerateAllSetterWithoutDefaultValuePostfixTemplate() {
         super(null, ALL_SETTER_SUFFIX, ALL_SETTER_INFO, selectorTopmost(psiElement -> {
             Project project = psiElement.getProject();
             PsiType type = ((PsiExpression) psiElement).getType();
