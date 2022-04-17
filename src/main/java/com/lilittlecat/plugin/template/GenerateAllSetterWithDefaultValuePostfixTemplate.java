@@ -137,7 +137,14 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends PostfixTem
         if (importList != null) {
             PsiImportStatement[] importStatements = importList.getImportStatements();
             for (PsiImportStatement importStatement : importStatements) {
-                newImportSet.add(importStatement.getQualifiedName());
+                String text = importStatement.getText();
+                String qualifiedName = text.replace("import ", "").replace(";", "");
+                // handle import .*
+                if (qualifiedName.endsWith(".*")) {
+                    String prefix = qualifiedName.substring(0, qualifiedName.length() - 2);
+                    newImportSet.removeIf(next -> next.startsWith(prefix));
+                }
+                newImportSet.add(qualifiedName);
             }
             Set<String> sortedSet = newImportSet.stream().sorted().collect(Collectors.toCollection(LinkedHashSet::new));
             StringBuilder newImportBuilder = new StringBuilder();
