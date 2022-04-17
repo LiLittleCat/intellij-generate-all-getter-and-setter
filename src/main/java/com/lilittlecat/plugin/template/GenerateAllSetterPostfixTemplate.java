@@ -26,7 +26,15 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class GenerateAllSetterPostfixTemplate extends PostfixTemplateWithExpressionSelector {
 
     public GenerateAllSetterPostfixTemplate() {
-        super(null, ALL_SETTER_SUFFIX, ALL_SETTER_INFO, selectorTopmost(psiElement -> true), null);
+        super(null, ALL_SETTER_SUFFIX, ALL_SETTER_INFO, selectorTopmost(psiElement -> {
+            Project project = psiElement.getProject();
+            PsiType type = ((PsiExpression) psiElement).getType();
+            if (type == null) {
+                return false;
+            }
+            PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(type.getCanonicalText(), psiElement.getResolveScope());
+            return psiClass != null;
+        }), null);
     }
 
     @Override

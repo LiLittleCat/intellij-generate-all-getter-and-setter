@@ -32,7 +32,15 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends PostfixTem
     public GenerateAllSetterWithDefaultValuePostfixTemplate() {
         super(null,
                 ALL_SETTER_WITH_DEFAULT_VALUE_SUFFIX,
-                ALL_SETTER_WITH_DEFAULT_VALUE_INFO, selectorTopmost(psiElement -> true), null);
+                ALL_SETTER_WITH_DEFAULT_VALUE_INFO, selectorTopmost(psiElement -> {
+                    Project project = psiElement.getProject();
+                    PsiType type = ((PsiExpression) psiElement).getType();
+                    if (type == null) {
+                        return false;
+                    }
+                    PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(type.getCanonicalText(), psiElement.getResolveScope());
+                    return psiClass != null;
+                }), null);
     }
 
     @Override

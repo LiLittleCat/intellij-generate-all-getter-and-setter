@@ -24,8 +24,16 @@ import static com.lilittlecat.plugin.util.PsiClassUtil.*;
 public class GenerateAllGetterPostfixTemplate extends PostfixTemplateWithExpressionSelector {
 
     public GenerateAllGetterPostfixTemplate() {
-        // todo when can use this postfix template.
-        super(null, ALL_GETTER_SUFFIX, ALL_GETTER_INFO, selectorTopmost(psiElement -> true), null);
+        super(null, ALL_GETTER_SUFFIX, ALL_GETTER_INFO,
+                selectorTopmost(psiElement -> {
+                    Project project = psiElement.getProject();
+                    PsiType type = ((PsiExpression) psiElement).getType();
+                    if (type == null) {
+                        return false;
+                    }
+                    PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(type.getCanonicalText(), psiElement.getResolveScope());
+                    return psiClass != null;
+                }), null);
     }
 
 
