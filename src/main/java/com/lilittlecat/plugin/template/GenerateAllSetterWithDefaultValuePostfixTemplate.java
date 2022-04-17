@@ -5,22 +5,22 @@ import com.intellij.codeInsight.template.TemplateManager;
 import com.intellij.codeInsight.template.postfix.templates.PostfixTemplateWithExpressionSelector;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.lilittlecat.plugin.util.PsiClassUtil;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.intellij.codeInsight.template.postfix.util.JavaPostfixTemplatesUtils.selectorTopmost;
-import static com.intellij.psi.PsiModifier.*;
 import static com.lilittlecat.plugin.common.Constants.*;
-import static com.lilittlecat.plugin.util.PsiClassUtil.*;
+import static com.lilittlecat.plugin.util.PsiClassUtil.isValidSetterMethod;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -71,11 +71,22 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends PostfixTem
             PsiParameter parameter = setterMethod.getParameterList().getParameters()[0];
             PsiType parameterType = parameter.getType();
             if (parameterType instanceof PsiArrayType) {
-                // parameter type is array type. todo
-
-
-
-
+                // parameter type is array type.
+                String text = parameterType.getCanonicalText();
+                int i = text.indexOf("<");
+                // array type don't need implementation, we can use interface such as "new Map[]",
+                // users should adjust it after auto insert set value.
+                String qualifiedName = "";
+                if (i == -1) {
+                    qualifiedName = text.replace("[]", "");
+                } else {
+                    // parameter type is generic
+                    qualifiedName = text.substring(0, i);
+                }
+                if (isNotBlank(qualifiedName)) {
+                    newImportSet.add(qualifiedName);
+                    defaultValue = "new " + getClassName(qualifiedName) + "[0]";
+                }
             } else if (parameterType instanceof PsiClassReferenceType) {
                 // parameter type is class reference type.
                 PsiClass parameterClass = PsiTypesUtil.getPsiClass(parameterType);
@@ -87,42 +98,20 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends PostfixTem
                     continue;
                 }
                 String text = parameterType.getCanonicalText();
-                String className = "";
                 int i = text.indexOf("<");
                 if (i == -1) {
                     newImportSet.add(qualifiedName);
-                    className = getClassName(qualifiedName);
                 } else {
-                    StringBuilder all = new StringBuilder();
                     // parameter type is generic
                     String fieldType = text.substring(0, i);
                     newImportSet.add(getRealImport(fieldType));
-                    all.append(getClassName(fieldType)).append("<");
-                    String genericTypeList = text.substring(i + 1, text.length() - 1);
-                    String[] split = genericTypeList.split(",");
-                    if (split.length == 1) {
-                        newImportSet.add(getRealImport(split[0]));
-                        all.append(getClassName(split[0])).append(">");
-                    } else {
-                        for (int j = 0; j < split.length; j++) {
-                            newImportSet.add(getRealImport(split[j]));
-                            all.append(getClassName(split[j]));
-                            if (j != split.length - 1) {
-                                all.append(", ");
-                            }
-                        }
-                        all.append(">");
-                    }
-                    className = all.toString();
                 }
-
                 String staticDefaultValue = DEFAULT_VALUE_MAP.get(qualifiedName);
                 if (isNotBlank(staticDefaultValue)) {
                     defaultValue = staticDefaultValue;
                 } else {
-                    defaultValue = "new " + className + "()";
+                    defaultValue = "new " + getClassName(qualifiedName) + "()";
                 }
-
             } else {
                 // nothing to do.
                 continue;
@@ -132,8 +121,6 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends PostfixTem
 
         }
         builder.append("$END$");
-
-
         // import
         newImportSet.removeIf(next -> next.startsWith("java.lang") || !next.contains("."));
         PsiFile containingFile = expression.getContainingFile();
@@ -153,15 +140,20 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends PostfixTem
             int start = importList.getTextRange().getStartOffset();
             int end = importList.getTextRange().getEndOffset();
             document.deleteString(start, end);
-            document.insertString(start, newImportBuilder.toString());
+            document.insertString(start, newImportBuilder.toString().replaceFirst("\n", ""));
         }
-
         Template template = manager.createTemplate(getId(), "", builder.toString());
         template.setToReformat(true);
         manager.startTemplate(editor, template);
 
     }
 
+    /**
+     * get real import, such as: java.util.Map -> java.util.HashMap
+     *
+     * @param qualifiedName qualified name
+     * @return real import
+     */
     private String getRealImport(String qualifiedName) {
         String defaultImport = DEFAULT_IMPORT_MAP.get(qualifiedName);
         if (defaultImport != null) {
@@ -171,7 +163,12 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends PostfixTem
         }
     }
 
-
+    /**
+     * get class name, such as: java.util.Map -> Map; User -> User
+     *
+     * @param qualifiedName qualified name
+     * @return class name
+     */
     private String getClassName(String qualifiedName) {
         int i = qualifiedName.lastIndexOf(".");
         if (i == -1) {
