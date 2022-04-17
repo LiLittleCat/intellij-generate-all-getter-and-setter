@@ -10,13 +10,15 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import com.lilittlecat.plugin.common.Constants;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
+import org.junit.Ignore;
 
 
 /**
  * @author LiLittleCat
  * @since 4/13/2022
  */
-public class GenerateAllGetterPostfixTemplateTest extends LightJavaCodeInsightFixtureTestCase {
+@Ignore
+public class GenerateAllPostfixTemplateTest extends LightJavaCodeInsightFixtureTestCase {
 
 //    @Override
 //    protected String getTestDataPath() {

@@ -54,7 +54,7 @@ Plugin based on the [IntelliJ Platform Plugin Template][template].
 
 - Thanks to [XiaoYao][XiaoYao's link] for helping design the plugin icon.
 
-[XiaoYao's link]: https://github.com/JetBrains/intellij-platform-plugin-template
+[XiaoYao's link]: https://space.bilibili.com/15765234
 
 [template]: https://github.com/JetBrains/intellij-platform-plugin-template
 
