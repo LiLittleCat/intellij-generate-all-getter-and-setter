@@ -1,0 +1,11 @@
+import java.util.List;
+
+public class Foo {
+    public void method() {
+        Bar bar = new Bar();
+        Integer i = bar.getInteger();
+        String s = bar.getString();
+        List<String> list = bar.getList();
+        <spot></spot>
+    }
+}

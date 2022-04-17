@@ -1,0 +1,11 @@
+import java.util.ArrayList;
+
+public class Foo {
+    public void method() {
+        Bar bar = new Bar();
+        bar.setInteger(0);
+        bar.setString("");
+        bar.setList(new ArrayList<>());
+        <spot></spot>
+    }
+}

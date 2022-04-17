@@ -1,0 +1,6 @@
+public class Foo {
+    public void method() {
+        Bar bar = new Bar();
+        <spot>bar</spot>.allset
+    }
+}
