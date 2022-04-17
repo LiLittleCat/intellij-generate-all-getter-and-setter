@@ -1,11 +1,7 @@
 package com.lilittlecat.plugin.template;
 
 import com.intellij.codeInsight.template.Template;
-import com.intellij.codeInsight.template.TemplateManager;
-import com.intellij.codeInsight.template.postfix.templates.PostfixTemplateWithExpressionSelector;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.PsiTypesUtil;
@@ -18,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.intellij.codeInsight.template.postfix.util.JavaPostfixTemplatesUtils.selectorTopmost;
 import static com.lilittlecat.plugin.common.Constants.*;
 import static com.lilittlecat.plugin.util.PsiClassUtil.isValidSetterMethod;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -28,53 +23,25 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * @author LiLittleCat
  * @since 2022/4/16
  */
-public class GenerateAllSetterWithDefaultValuePostfixTemplate extends PostfixTemplateWithExpressionSelector {
+public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGeneratePostfixTemplate {
+
     public GenerateAllSetterWithDefaultValuePostfixTemplate() {
-        super(null,
-                ALL_SETTER_WITH_DEFAULT_VALUE_SUFFIX,
-                ALL_SETTER_WITH_DEFAULT_VALUE_INFO, selectorTopmost(psiElement -> {
-                    Project project = psiElement.getProject();
-                    PsiType type = ((PsiExpression) psiElement).getType();
-                    if (type == null) {
-                        return false;
-                    }
-                    PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(type.getCanonicalText(), psiElement.getResolveScope());
-                    return psiClass != null;
-                }), null);
+        super(null, ALL_SETTER_WITH_DEFAULT_VALUE_SUFFIX, ALL_SETTER_WITH_DEFAULT_VALUE_INFO, null);
     }
 
-    @Override
-    public boolean isBuiltin() {
-        return false;
-    }
+    /**
+     * new import set
+     */
+    Set<String> newImportSet = new HashSet<>();
 
     @Override
-    public boolean isEditable() {
-        return false;
-    }
-
-
-    @Override
-    protected void expandForChooseExpression(@NotNull PsiElement expression, @NotNull Editor editor) {
-        Project project = expression.getProject();
-        TemplateManager manager = TemplateManager.getInstance(project);
-        Document document = editor.getDocument();
-        // delete old text in current row.
-        document.deleteString(expression.getTextRange().getStartOffset(), expression.getTextRange().getEndOffset());
-        PsiType type = ((PsiExpression) expression).getType();
-        if (type == null) {
-            return;
-        }
-        PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(type.getCanonicalText(), expression.getResolveScope());
-        if (psiClass == null) {
-            return;
-        }
-        PsiField[] fields = psiClass.getAllFields();
-        List<PsiMethod> setterMethods = PsiClassUtil.getMethods(psiClass, method -> isValidSetterMethod(method, fields));
-        Set<String> newImportSet = new HashSet<>();
+    protected String buildTemplateString(@NotNull PsiElement expression,
+                                         @NotNull Document document,
+                                         @NotNull List<PsiMethod> methods,
+                                         @NotNull PsiField[] fields) {
         StringBuilder builder = new StringBuilder();
         String defaultValue = "";
-        for (PsiMethod setterMethod : setterMethods) {
+        for (PsiMethod setterMethod : methods) {
             // parameters of setter method.
             PsiParameter parameter = setterMethod.getParameterList().getParameters()[0];
             PsiType parameterType = parameter.getType();
@@ -129,7 +96,30 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends PostfixTem
 
         }
         builder.append("$END$");
+
         // import
+        importNewClass(expression, document);
+
+        return builder.toString();
+    }
+
+    @Override
+    protected Template modifyTemplate(Template template) {
+        return template;
+    }
+
+    @Override
+    protected List<PsiMethod> getMethods(PsiClass psiClass, PsiField[] fields) {
+        return PsiClassUtil.getMethods(psiClass, method -> isValidSetterMethod(method, fields));
+    }
+
+    /**
+     * import new class.
+     *
+     * @param expression expression
+     * @param document   document
+     */
+    private void importNewClass(@NotNull PsiElement expression, @NotNull Document document) {
         newImportSet.removeIf(next -> next.startsWith("java.lang") || !next.contains("."));
         PsiFile containingFile = expression.getContainingFile();
         PsiJavaFile javaFile = (PsiJavaFile) containingFile;
@@ -157,10 +147,6 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends PostfixTem
             document.deleteString(start, end);
             document.insertString(start, newImportBuilder.toString().replaceFirst("\n", ""));
         }
-        Template template = manager.createTemplate(getId(), "", builder.toString());
-        template.setToReformat(true);
-        manager.startTemplate(editor, template);
-
     }
 
     /**

@@ -1,19 +1,17 @@
 package com.lilittlecat.plugin.template;
 
 import com.intellij.codeInsight.template.Template;
-import com.intellij.codeInsight.template.TemplateManager;
-import com.intellij.codeInsight.template.postfix.templates.PostfixTemplateWithExpressionSelector;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
 import com.lilittlecat.plugin.util.PsiClassUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.intellij.codeInsight.template.postfix.util.JavaPostfixTemplatesUtils.selectorTopmost;
 import static com.lilittlecat.plugin.common.Constants.ALL_SETTER_INFO;
 import static com.lilittlecat.plugin.common.Constants.ALL_SETTER_SUFFIX;
 import static com.lilittlecat.plugin.util.PsiClassUtil.*;
@@ -23,59 +21,24 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * @author LiLittleCat
  * @since 4/15/2022
  */
-public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends PostfixTemplateWithExpressionSelector {
+public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGeneratePostfixTemplate {
 
     public GenerateAllSetterWithoutDefaultValuePostfixTemplate() {
-        super(null, ALL_SETTER_SUFFIX, ALL_SETTER_INFO, selectorTopmost(psiElement -> {
-            Project project = psiElement.getProject();
-            PsiType type = ((PsiExpression) psiElement).getType();
-            if (type == null) {
-                return false;
-            }
-            PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(type.getCanonicalText(), psiElement.getResolveScope());
-            return psiClass != null;
-        }), null);
-    }
-
-    @Override
-    public boolean isBuiltin() {
-        return false;
-    }
-
-    @Override
-    public boolean isEditable() {
-        return false;
+        super(null, ALL_SETTER_SUFFIX, ALL_SETTER_INFO, null);
     }
 
     /**
-     * reference:
-     * {@link com.intellij.codeInsight.template.postfix.templates.editable.EditablePostfixTemplate#expand(PsiElement, Editor)}
-     *
-     * @param expression the expression.
-     * @param editor     the editor.
+     * variables will be added in template.
      */
+    private final List<String> variableList = new ArrayList<>();
+
     @Override
-    protected void expandForChooseExpression(@NotNull PsiElement expression, @NotNull Editor editor) {
-        Project project = expression.getProject();
-        TemplateManager manager = TemplateManager.getInstance(project);
-        Document document = editor.getDocument();
-        // delete old text in current row.
-        document.deleteString(expression.getTextRange().getStartOffset(), expression.getTextRange().getEndOffset());
-        PsiType type = ((PsiExpression) expression).getType();
-        if (type == null) {
-            return;
-        }
-        String className = type.getCanonicalText();
-        PsiClass psiClass = JavaPsiFacade.getInstance(expression.getProject()).findClass(className, expression.getResolveScope());
-        if (psiClass == null) {
-            return;
-        }
-        PsiField[] fields = psiClass.getAllFields();
-        List<PsiMethod> setterMethods = PsiClassUtil.getMethods(psiClass, method -> isValidSetterMethod(method, fields));
-        // variables will be added in template.
-        List<String> variableList = new ArrayList<>();
+    protected String buildTemplateString(@NotNull PsiElement expression,
+                                         @NotNull Document document,
+                                         @NotNull List<PsiMethod> methods,
+                                         @NotNull PsiField[] fields) {
         StringBuilder builder = new StringBuilder();
-        for (PsiMethod setterMethod : setterMethods) {
+        for (PsiMethod setterMethod : methods) {
             String fieldName = getFieldNameInMethod(setterMethod, SET);
             if (isNotBlank(fieldName)) {
                 variableList.add(fieldName);
@@ -84,11 +47,19 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends Postfix
                     .append("($").append(fieldName).append("$);\n");
         }
         builder.append("$END$");
-        Template template = manager.createTemplate(getId(), "", builder.toString());
+        return builder.toString();
+    }
+
+    @Override
+    protected Template modifyTemplate(Template template) {
         for (String variable : variableList) {
             template.addVariable(variable, variable, variable, true);
         }
-        template.setToReformat(true);
-        manager.startTemplate(editor, template);
+        return template;
+    }
+
+    @Override
+    protected List<PsiMethod> getMethods(PsiClass psiClass, PsiField[] fields) {
+        return PsiClassUtil.getMethods(psiClass, method -> isValidSetterMethod(method, fields));
     }
 }
