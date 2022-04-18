@@ -52,7 +52,7 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
 
     /**
      * reference:
-     * {@link com.intellij.codeInsight.template.postfix.templates.editable.EditablePostfixTemplate#expand(PsiElement, Editor)}
+     * com.intellij.codeInsight.template.postfix.templates.editable.EditablePostfixTemplate#expandForChooseExpression(PsiElement, Editor)
      *
      * @param expression the expression.
      * @param editor     the editor.

@@ -51,7 +51,7 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                 int i = text.indexOf("<");
                 // array type don't need implementation, we can use interface such as "new Map[]",
                 // users should adjust it after auto insert set value.
-                String qualifiedName = "";
+                String qualifiedName;
                 if (i == -1) {
                     qualifiedName = text.replace("[]", "");
                 } else {

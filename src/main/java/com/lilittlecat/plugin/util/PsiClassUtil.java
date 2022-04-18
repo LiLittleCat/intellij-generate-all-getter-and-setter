@@ -21,8 +21,6 @@ public class PsiClassUtil {
 
     public static final String GET = "get";
     public static final String SET = "set";
-    public static final String IS = "is";
-    public static final String WITH = "with";
 
     /**
      * judge whether the class is a java system class
@@ -50,13 +48,12 @@ public class PsiClassUtil {
         }
         return method.hasModifierProperty(PsiModifier.PUBLIC)
                 && !method.hasModifierProperty(PsiModifier.STATIC)
-                && (method.getName().startsWith(GET) || method.getName().startsWith(IS))
+                && (method.getName().startsWith(GET))
                 // getter method should have no parameter
                 && method.getParameterList().getParametersCount() == 0
                 // getter method should contain the field name in method name
                 && Arrays.stream(fields).filter(PsiClassUtil::isNormalField).anyMatch(
-                field -> Objects.equals(field.getName(), getFieldNameInMethod(method, GET))
-                        || Objects.equals(field.getName(), getFieldNameInMethod(method, IS)));
+                field -> Objects.equals(field.getName(), getFieldNameInMethod(method, GET)));
     }
 
     /**
@@ -72,13 +69,12 @@ public class PsiClassUtil {
         }
         return method.hasModifierProperty(PsiModifier.PUBLIC)
                 && !method.hasModifierProperty(PsiModifier.STATIC)
-                && (method.getName().startsWith(SET) || method.getName().startsWith(WITH))
+                && (method.getName().startsWith(SET))
                 // setter method should have one parameter
                 && method.getParameterList().getParametersCount() == 1
                 // setter method should contain the field name in method name
                 && Arrays.stream(fields).filter(PsiClassUtil::isNormalField).anyMatch(
-                field -> Objects.equals(field.getName(), getFieldNameInMethod(method, SET))
-                        || Objects.equals(field.getName(), getFieldNameInMethod(method, WITH)));
+                field -> Objects.equals(field.getName(), getFieldNameInMethod(method, SET)));
     }
 
     /**
@@ -109,7 +105,7 @@ public class PsiClassUtil {
         }
         PsiField[] fields = psiClass.getFields();
         PsiMethod[] methods = psiClass.getMethods();
-        if (fields == null || fields.length == 0 || methods == null || methods.length == 0) {
+        if (fields.length == 0 || methods.length == 0) {
             return new ArrayList<>();
         }
         return Arrays.stream(methods).filter(predicate).collect(Collectors.toList());
