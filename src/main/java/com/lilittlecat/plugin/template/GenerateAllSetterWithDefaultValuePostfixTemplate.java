@@ -156,9 +156,9 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
      * @return real import
      */
     private String getRealImport(String qualifiedName) {
-        String defaultImport = DEFAULT_IMPORT_MAP.get(qualifiedName);
-        if (defaultImport != null) {
-            return defaultImport;
+        String realImport = REAL_IMPORT_MAP.get(qualifiedName);
+        if (realImport != null) {
+            return realImport;
         } else {
             return qualifiedName;
         }
