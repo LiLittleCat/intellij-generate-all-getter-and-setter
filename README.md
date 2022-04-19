@@ -29,7 +29,7 @@ use [postfix completion](https://www.jetbrains.com/help/idea/settings-postfix-co
 
 - Manually:
 
-  Download the [latest release](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/releases/latest)
+  Download the [latest release](https://plugins.jetbrains.com/plugin/18969-generate-all-getter-and-setter/versions)
   and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
 
