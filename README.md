@@ -37,15 +37,15 @@ use [postfix completion](https://www.jetbrains.com/help/idea/settings-postfix-co
 Plugin based on the [IntelliJ Platform Plugin Template][template].
 ## Usage
 
-- Use <kbd>.allget</kbd> + <kbd>Tab</kbd> to generate all getter methods for POJO.
+- Use <kbd>.allget</kbd> to generate all getter methods for POJO.
 
 ![example-allget](example/GenerateAllGetter.gif)
 
-- Use <kbd>.allset</kbd> + <kbd>Tab</kbd> to generate all setter methods without default value for POJO.
+- Use <kbd>.allset</kbd> to generate all setter methods without default value for POJO.
 
 ![example-allset](example/GenerateAllSetterWithoutDefaultValue.gif)
 
-- Use <kbd>.allsetv</kbd> + <kbd>Tab</kbd> to generate all setter methods with default value for POJO.
+- Use <kbd>.allsetv</kbd> to generate all setter methods with default value for POJO.
 
 ![example-allsetv](example/GenerateAllSetterWithDefaultValue.gif)
 
