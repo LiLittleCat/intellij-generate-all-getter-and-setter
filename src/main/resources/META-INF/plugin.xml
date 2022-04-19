@@ -16,18 +16,18 @@
 
                       <strong>Usage</strong>
                       <ul>
-                          <li>Use <kbd>.allget</kbd> to generate all getter methods for POJO.</li>
-                          <li>Use <kbd>.allset</kbd> to generate all setter methods without default value for POJO.</li>
-                          <li>Use <kbd>.allsetv</kbd> to generate all setter methods with default value for POJO.</li>
+                          <li>Use <kbd>.allget</kbd> + <kbd>Tab</kbd> to generate all getter methods for POJO.</li>
+                          <li>Use <kbd>.allset</kbd> + <kbd>Tab</kbd> to generate all setter methods without default value for POJO.</li>
+                          <li>Use <kbd>.allsetv</kbd> + <kbd>Tab</kbd> to generate all setter methods with default value for POJO.</li>
                       </ul>
 
                       <p>使用类似 <kbd>.var</kbd> 的后缀模板生成 POJO 的所有 getter 和 setter 方法。</p>
 
                       <strong>使用方法</strong>
                       <ul>
-                          <li>使用 <kbd>.allget</kbd> 生成所有 getter 方法。</li>
-                          <li>使用 <kbd>.allset</kbd> 生成所有不带默认值的 setter 方法。</li>
-                          <li>使用 <kbd>.allsetv</kbd> 生成所有带默认值的 setter 方法。</li>
+                          <li>使用 <kbd>.allget</kbd> + <kbd>Tab</kbd> 生成所有 getter 方法。</li>
+                          <li>使用 <kbd>.allset</kbd> + <kbd>Tab</kbd> 生成所有不带默认值的 setter 方法。</li>
+                          <li>使用 <kbd>.allsetv</kbd> + <kbd>Tab</kbd> 生成所有带默认值的 setter 方法。</li>
                       </ul>
 
 ]]>
