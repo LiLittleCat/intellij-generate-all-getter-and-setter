@@ -74,7 +74,7 @@ tasks {
 
         // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
 
-        // Use <description> in plugin.xml instad of <!-- Plugin description --> in README.md
+        // Use <description> in plugin.xml instead of <!-- Plugin description --> in README.md
 //        pluginDescription.set(
 //            projectDir.resolve("README.md").readText().lines().run {
 //                val start = "<!-- Plugin description -->"
