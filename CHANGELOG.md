@@ -3,6 +3,8 @@
 # Generate All Getter And Setter Changelog
 
 ## [Unreleased]
+
+## [1.0.1]
 ### Fixed
 - Postfix Completion setting fail [#1](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues/1)
 
