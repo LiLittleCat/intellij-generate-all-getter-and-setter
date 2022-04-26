@@ -1,6 +1,7 @@
 package com.lilittlecat.plugin.template;
 
 import com.intellij.codeInsight.template.Template;
+import com.intellij.codeInsight.template.postfix.templates.PostfixTemplateProvider;
 import com.intellij.openapi.editor.Document;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -23,8 +24,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  */
 public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGeneratePostfixTemplate {
 
-    public GenerateAllSetterWithoutDefaultValuePostfixTemplate() {
-        super(null, ALL_SETTER_SUFFIX, ALL_SETTER_INFO, null);
+    public GenerateAllSetterWithoutDefaultValuePostfixTemplate(PostfixTemplateProvider provider) {
+        super(null, ALL_SETTER_SUFFIX, ALL_SETTER_INFO, provider);
     }
 
     /**

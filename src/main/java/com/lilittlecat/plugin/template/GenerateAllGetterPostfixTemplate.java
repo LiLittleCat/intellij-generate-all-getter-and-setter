@@ -1,6 +1,7 @@
 package com.lilittlecat.plugin.template;
 
 import com.intellij.codeInsight.template.Template;
+import com.intellij.codeInsight.template.postfix.templates.PostfixTemplateProvider;
 import com.intellij.openapi.editor.Document;
 import com.intellij.psi.*;
 import com.lilittlecat.plugin.util.PsiClassUtil;
@@ -18,8 +19,8 @@ import static com.lilittlecat.plugin.util.PsiClassUtil.*;
  */
 public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplate {
 
-    public GenerateAllGetterPostfixTemplate() {
-        super(null, ALL_GETTER_SUFFIX, ALL_GETTER_INFO, null);
+    public GenerateAllGetterPostfixTemplate(PostfixTemplateProvider provider) {
+        super(null, ALL_GETTER_SUFFIX, ALL_GETTER_INFO, provider);
     }
 
     @Override
