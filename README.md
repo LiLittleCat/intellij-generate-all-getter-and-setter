@@ -1,10 +1,10 @@
+<img src="src/main/resources/META-INF/pluginIcon.svg" align="right" width="128" height="128"/>
+
 # Generate All Getter And Setter
 
 ![Build](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/workflows/Build/badge.svg)
 [![Version](https://img.shields.io/jetbrains/plugin/v/18969-generate-all-getter-and-setter.svg)](https://plugins.jetbrains.com/plugin/18969-generate-all-getter-and-setter)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/18969-generate-all-getter-and-setter.svg)](https://plugins.jetbrains.com/plugin/18969-generate-all-getter-and-setter)
-
-![icon](src/main/resources/META-INF/pluginIcon.svg)
 
 Generate All Getter And Setter is an IntelliJ IDEA plugin that generates all getter and setter methods for POJO
 use [postfix completion](https://www.jetbrains.com/help/idea/settings-postfix-completion.html) like
