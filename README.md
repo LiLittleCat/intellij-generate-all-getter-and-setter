@@ -52,7 +52,7 @@ Plugin based on the [IntelliJ Platform Plugin Template][template].
 
 ## Special Thanks
 
-- Thanks to [XiaoYao][XiaoYao's link] for helping design the plugin icon.
+- Thanks [XiaoYao][XiaoYao's link] for helping design the plugin icon.
 
 [XiaoYao's link]: https://space.bilibili.com/15765234
 
