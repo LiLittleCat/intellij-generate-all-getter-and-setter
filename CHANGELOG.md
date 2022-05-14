@@ -3,6 +3,8 @@
 # Generate All Getter And Setter Changelog
 
 ## [Unreleased]
+### Added
+- Support IDEA 2022.1
 
 ## [1.0.1]
 ### Fixed
