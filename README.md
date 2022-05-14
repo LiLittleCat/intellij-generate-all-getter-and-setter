@@ -37,15 +37,15 @@ use [postfix completion](https://www.jetbrains.com/help/idea/settings-postfix-co
 
 - Use <kbd>.allget</kbd> to generate all getter methods for POJO.
 
-![example-allget](example/GenerateAllGetter.gif)
+![example-allget](example/generate-all-getter.gif)
 
 - Use <kbd>.allset</kbd> to generate all setter methods without default value for POJO.
 
-![example-allset](example/GenerateAllSetterWithoutDefaultValue.gif)
+![example-allset](example/generate-all-setter-without-default-value.gif)
 
 - Use <kbd>.allsetv</kbd> to generate all setter methods with default value for POJO.
 
-![example-allsetv](example/GenerateAllSetterWithDefaultValue.gif)
+![example-allsetv](example/generate-all-setter-with-default-value.gif)
 
 
 ## Special Thanks
