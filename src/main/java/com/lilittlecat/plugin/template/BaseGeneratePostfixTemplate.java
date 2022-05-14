@@ -29,6 +29,9 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
         super(id, name, example, selectorTopmost(IS_OK), provider);
     }
 
+    /**
+     * which condition can use this template.
+     */
     public static final Condition<PsiElement> IS_OK =
             psiElement -> {
                 Project project = psiElement.getProject();

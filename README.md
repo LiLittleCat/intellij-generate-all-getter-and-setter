@@ -1,4 +1,4 @@
-<img src="src/main/resources/META-INF/pluginIcon.svg" align="right" width="128" height="128"/>
+<img src="src/main/resources/META-INF/pluginIcon.svg" align="right" width="128" height="128" alt="icon"/>
 
 # Generate All Getter And Setter
 
@@ -33,8 +33,6 @@ use [postfix completion](https://www.jetbrains.com/help/idea/settings-postfix-co
   and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
 
----
-Plugin based on the [IntelliJ Platform Plugin Template][template].
 ## Usage
 
 - Use <kbd>.allget</kbd> to generate all getter methods for POJO.
@@ -53,6 +51,8 @@ Plugin based on the [IntelliJ Platform Plugin Template][template].
 ## Special Thanks
 
 - Thanks [XiaoYao][XiaoYao's link] for helping design the plugin icon.
+---
+Plugin based on the [IntelliJ Platform Plugin Template][template].
 
 [XiaoYao's link]: https://space.bilibili.com/15765234
 
