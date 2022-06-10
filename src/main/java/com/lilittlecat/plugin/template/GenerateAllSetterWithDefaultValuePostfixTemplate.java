@@ -126,6 +126,7 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
         PsiJavaFile javaFile = (PsiJavaFile) containingFile;
         PsiImportList importList = (javaFile).getImportList();
         if (importList != null) {
+            // add new imports
             PsiImportStatement[] importStatements = importList.getImportStatements();
             for (PsiImportStatement importStatement : importStatements) {
                 String text = importStatement.getText();
@@ -142,7 +143,13 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
             for (String s : sortedSet) {
                 newImportBuilder.append("\nimport ").append(s).append(";");
             }
-            // replace import
+            // keep static imports
+            PsiImportStaticStatement[] importStaticStatements = importList.getImportStaticStatements();
+            newImportBuilder.append("\n");
+            for (PsiImportStaticStatement importStaticStatement : importStaticStatements) {
+                newImportBuilder.append("\n").append(importStaticStatement.getText());
+            }
+            // replace imports
             int start = importList.getTextRange().getStartOffset();
             int end = importList.getTextRange().getEndOffset();
             document.deleteString(start, end);
