@@ -4,7 +4,14 @@
 
 ## [Unreleased]
 ### Added
-- Support IDEA 2022.1
+- Support get and set parent classes‘ field.
+
+### Fixed
+- Fix static imports disappear.
+
+## [1.0.2]
+### Added
+- Support IDEA 2022.1.
 
 ## [1.0.1]
 ### Fixed
