@@ -27,7 +27,7 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
     protected String buildTemplateString(@NotNull PsiElement expression,
                                          @NotNull Document document,
                                          @NotNull List<PsiMethod> methods,
-                                         @NotNull PsiField[] fields) {
+                                         @NotNull List<PsiField> fields) {
         StringBuilder builder = new StringBuilder();
         for (PsiMethod method : methods) {
             PsiType returnType = method.getReturnType();
@@ -49,7 +49,7 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
     }
 
     @Override
-    protected List<PsiMethod> getMethods(PsiClass psiClass, PsiField[] fields) {
+    protected List<PsiMethod> getMethods(PsiClass psiClass, List<PsiField> fields) {
         return PsiClassUtil.getMethods(psiClass, method -> isValidGetterMethod(method, fields));
     }
 }

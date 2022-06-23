@@ -37,7 +37,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
     protected String buildTemplateString(@NotNull PsiElement expression,
                                          @NotNull Document document,
                                          @NotNull List<PsiMethod> methods,
-                                         @NotNull PsiField[] fields) {
+                                         @NotNull List<PsiField> fields) {
         StringBuilder builder = new StringBuilder();
         for (PsiMethod setterMethod : methods) {
             String fieldName = getFieldNameInMethod(setterMethod, SET);
@@ -60,7 +60,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
     }
 
     @Override
-    protected List<PsiMethod> getMethods(PsiClass psiClass, PsiField[] fields) {
+    protected List<PsiMethod> getMethods(PsiClass psiClass, List<PsiField> fields) {
         return PsiClassUtil.getMethods(psiClass, method -> isValidSetterMethod(method, fields));
     }
 }

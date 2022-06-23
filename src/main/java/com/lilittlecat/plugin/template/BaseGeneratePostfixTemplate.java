@@ -9,9 +9,11 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.psi.*;
+import com.lilittlecat.plugin.util.PsiClassUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.intellij.codeInsight.template.postfix.util.JavaPostfixTemplatesUtils.selectorTopmost;
@@ -72,8 +74,18 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
         String className = type.getCanonicalText();
         PsiClass psiClass = JavaPsiFacade.getInstance(expression.getProject()).findClass(className, expression.getResolveScope());
         assert psiClass != null;
-        PsiField[] fields = psiClass.getFields();
-        List<PsiMethod> methods = getMethods(psiClass, fields);
+        List<PsiField> fields = PsiClassUtil.getAllFieldsIncludeSuperClass(psiClass);
+        // get all methods from class include super classes.
+        List<PsiMethod> methods = new ArrayList<>();
+        while (!PsiClassUtil.isSystemClass(psiClass)) {
+            methods.addAll(getMethods(psiClass, fields));
+            PsiClass superClass = psiClass.getSuperClass();
+            if (superClass == null) {
+                break;
+            } else {
+                psiClass = psiClass.getSuperClass();
+            }
+        }
         Template template = manager.createTemplate(getId(), "", buildTemplateString(expression, document, methods, fields));
         template = modifyTemplate(template);
         template.setToReformat(true);
@@ -88,7 +100,7 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
      * @param fields   the fields.
      * @return the valid methods in class.
      */
-    protected abstract List<PsiMethod> getMethods(PsiClass psiClass, PsiField[] fields);
+    protected abstract List<PsiMethod> getMethods(PsiClass psiClass, List<PsiField> fields);
 
 
     /**
@@ -103,7 +115,7 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
     protected abstract String buildTemplateString(@NotNull PsiElement expression,
                                                   @NotNull Document document,
                                                   @NotNull List<PsiMethod> methods,
-                                                  @NotNull PsiField[] fields);
+                                                  @NotNull List<PsiField> fields);
 
     /**
      * modify template.

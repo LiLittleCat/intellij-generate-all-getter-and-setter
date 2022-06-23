@@ -42,7 +42,7 @@ public class PsiClassUtil {
      * @param fields the normal fields of the class
      * @return true if the method is a valid getter method
      */
-    public static boolean isValidGetterMethod(PsiMethod method, PsiField[] fields) {
+    public static boolean isValidGetterMethod(PsiMethod method, List<PsiField> fields) {
         if (method == null) {
             return false;
         }
@@ -52,7 +52,7 @@ public class PsiClassUtil {
                 // getter method should have no parameter
                 && method.getParameterList().getParametersCount() == 0
                 // getter method should contain the field name in method name
-                && Arrays.stream(fields).filter(PsiClassUtil::isNormalField).anyMatch(
+                && fields.stream().filter(PsiClassUtil::isNormalField).anyMatch(
                 field -> Objects.equals(field.getName(), getFieldNameInMethod(method, GET)));
     }
 
@@ -63,7 +63,7 @@ public class PsiClassUtil {
      * @param fields the normal fields of the class
      * @return true if the method is a valid setter method
      */
-    public static boolean isValidSetterMethod(PsiMethod method, PsiField[] fields) {
+    public static boolean isValidSetterMethod(PsiMethod method, List<PsiField> fields) {
         if (method == null) {
             return false;
         }
@@ -73,7 +73,7 @@ public class PsiClassUtil {
                 // setter method should have one parameter
                 && method.getParameterList().getParametersCount() == 1
                 // setter method should contain the field name in method name
-                && Arrays.stream(fields).filter(PsiClassUtil::isNormalField).anyMatch(
+                && fields.stream().filter(PsiClassUtil::isNormalField).anyMatch(
                 field -> Objects.equals(field.getName(), getFieldNameInMethod(method, SET)));
     }
 
@@ -132,6 +132,27 @@ public class PsiClassUtil {
             return "";
         }
         return getFirstCharLowerCase(method.getName().replaceFirst(prefix, ""));
+    }
+
+
+    /**
+     * get all fields include super classes' field.
+     *
+     * @param psiClass psiClass
+     * @return list of all fields
+     */
+    public static List<PsiField> getAllFieldsIncludeSuperClass(PsiClass psiClass) {
+        List<PsiField> allFields = new ArrayList<>();
+        while (!isSystemClass(psiClass)) {
+            allFields.addAll(List.of(psiClass.getFields()));
+            PsiClass superClass = psiClass.getSuperClass();
+            if (superClass == null) {
+                break;
+            } else {
+                psiClass = psiClass.getSuperClass();
+            }
+        }
+        return allFields;
     }
 
 
