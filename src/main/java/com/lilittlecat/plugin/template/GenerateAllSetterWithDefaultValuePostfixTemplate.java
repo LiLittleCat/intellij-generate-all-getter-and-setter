@@ -82,11 +82,22 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                     String fieldType = text.substring(0, i);
                     newImportSet.add(getRealImport(fieldType));
                 }
-                String staticDefaultValue = DEFAULT_VALUE_MAP.get(qualifiedName);
-                if (isNotBlank(staticDefaultValue)) {
-                    defaultValue = staticDefaultValue;
+                if (parameterClass.isEnum()) {
+                    // field is enum
+                    PsiField[] enumList = parameterClass.getFields();
+                    if (enumList.length != 0) {
+                        defaultValue = getClassName(qualifiedName) + DOT + enumList[0].getName();
+                    }
+                } else if (parameterClass.isAnnotationType() || parameterClass.isInterface()) {
+                    // nothing to do if field is annotation or interface, can this happen?
                 } else {
-                    defaultValue = "new " + getClassName(qualifiedName) + "()";
+                    // field is class
+                    String staticDefaultValue = DEFAULT_VALUE_MAP.get(qualifiedName);
+                    if (isNotBlank(staticDefaultValue)) {
+                        defaultValue = staticDefaultValue;
+                    } else {
+                        defaultValue = "new " + getClassName(qualifiedName) + "()";
+                    }
                 }
             } else {
                 // nothing to do.
