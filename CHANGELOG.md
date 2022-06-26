@@ -4,7 +4,8 @@
 
 ## [Unreleased]
 ### Added
-- Support get and set parent classes‘ field.
+- Support get and set parent classes‘ fields.
+- Support .allsetv for enum type fields.
 
 ### Fixed
 - Fix static imports disappear.
