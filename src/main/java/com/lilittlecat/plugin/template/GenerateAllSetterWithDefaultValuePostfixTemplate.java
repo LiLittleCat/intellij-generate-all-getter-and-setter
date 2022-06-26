@@ -86,7 +86,7 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                     // field is enum
                     PsiField[] enumList = parameterClass.getFields();
                     if (enumList.length != 0) {
-                        defaultValue = getClassName(qualifiedName) + DOT + enumList[0].getName();
+                        defaultValue = getClassName(qualifiedName) + "." + enumList[0].getName();
                     }
                 } else if (parameterClass.isAnnotationType() || parameterClass.isInterface()) {
                     // nothing to do if field is annotation or interface, can this happen?
