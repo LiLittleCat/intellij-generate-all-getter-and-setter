@@ -3,6 +3,8 @@
 # Generate All Getter And Setter Changelog
 
 ## [Unreleased]
+
+## [1.0.3]
 ### Added
 - Support get and set parent classes‘ fields.
 - Support .allsetv for enum type fields.
