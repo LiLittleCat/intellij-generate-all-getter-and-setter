@@ -4,6 +4,7 @@
 
 ## [Unreleased]
 
+## [1.0.4]
 ### Fixed
 - Fix errors occur when using .allset
 
