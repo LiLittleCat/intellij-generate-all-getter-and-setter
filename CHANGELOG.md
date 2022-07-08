@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- Fix errors occur when using .allset
+
 ## [1.0.3]
 ### Added
 - Support get and set parent classes‘ fields.
