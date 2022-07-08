@@ -111,7 +111,8 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
 
         // import
         importNewClass(expression, document);
-
+        // clear for next time use
+        newImportSet.clear();
         return builder.toString();
     }
 

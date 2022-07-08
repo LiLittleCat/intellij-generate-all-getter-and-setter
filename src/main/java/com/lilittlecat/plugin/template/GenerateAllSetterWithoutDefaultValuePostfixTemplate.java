@@ -56,6 +56,8 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
         for (String variable : variableList) {
             template.addVariable(variable, variable, variable, true);
         }
+        // clear for next time use
+        variableList.clear();
         return template;
     }
 
