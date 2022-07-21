@@ -51,11 +51,16 @@ use [postfix completion](https://www.jetbrains.com/help/idea/settings-postfix-co
 ## Special Thanks
 
 - Thanks [XiaoYao][XiaoYao's link] for helping design the plugin icon.
+- [JetBrains Licenses for Open Source Development][JetBrains's link].
+
+  ![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)
+
+- [IntelliJ Platform Plugin Template][template].
+
 ---
-Plugin based on the [IntelliJ Platform Plugin Template][template].
 
 [XiaoYao's link]: https://space.bilibili.com/15765234
-
+[JetBrains's link]: https://jb.gg/OpenSourceSupport
 [template]: https://github.com/JetBrains/intellij-platform-plugin-template
 
 
