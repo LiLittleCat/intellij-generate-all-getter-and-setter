@@ -88,10 +88,10 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                     if (enumList.length != 0) {
                         defaultValue = getClassName(qualifiedName) + "." + enumList[0].getName();
                     }
-                } else if (parameterClass.isAnnotationType() || parameterClass.isInterface()) {
-                    // nothing to do if field is annotation or interface, can this happen?
+                } else if (parameterClass.isAnnotationType()) {
+                    // nothing to do if field is annotation, can this happen?
                 } else {
-                    // field is class
+                    // field is class or interface like "java.lang.List" or "java.util.Set"
                     String staticDefaultValue = DEFAULT_VALUE_MAP.get(qualifiedName);
                     if (isNotBlank(staticDefaultValue)) {
                         defaultValue = staticDefaultValue;
