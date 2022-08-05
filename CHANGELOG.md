@@ -3,6 +3,8 @@
 # Generate All Getter And Setter Changelog
 
 ## [Unreleased]
+
+## [1.0.5]
 ### Added
 - Support 2022.2
 
