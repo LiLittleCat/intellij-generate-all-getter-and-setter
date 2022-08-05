@@ -4,7 +4,7 @@
 
 ## [Unreleased]
 ### Added
-- Support 2022.2 and later
+- Support 2022.2
 
 ## [1.0.4]
 ### Fixed
