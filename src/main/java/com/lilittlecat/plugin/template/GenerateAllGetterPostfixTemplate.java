@@ -9,8 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.lilittlecat.plugin.common.Constants.ALL_GETTER_INFO;
-import static com.lilittlecat.plugin.common.Constants.ALL_GETTER_SUFFIX;
+import static com.lilittlecat.plugin.common.Constants.*;
 import static com.lilittlecat.plugin.util.PsiClassUtil.*;
 
 /**
@@ -36,7 +35,7 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
             }
             String methodName = method.getName();
             builder.append(returnType.getCanonicalText()).append(" ")
-                    .append(getFieldNameInMethod(method, GET))
+                    .append(getFieldNameInMethod(method, GET_METHOD_TYPE))
                     .append(" = ").append(expression.getText()).append(".").append(methodName).append("();\n");
         }
         builder.append("$END$");

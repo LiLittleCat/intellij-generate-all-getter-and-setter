@@ -5,11 +5,14 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static com.lilittlecat.plugin.common.Constants.*;
 
 /**
  * @author LiLittleCat
@@ -18,9 +21,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class PsiClassUtil {
     private PsiClassUtil() {
     }
-
-    public static final String GET = "get";
-    public static final String SET = "set";
 
     /**
      * judge whether the class is a java system class
@@ -48,12 +48,12 @@ public class PsiClassUtil {
         }
         return method.hasModifierProperty(PsiModifier.PUBLIC)
                 && !method.hasModifierProperty(PsiModifier.STATIC)
-                && (method.getName().startsWith(GET))
+                && (method.getName().startsWith(GET) || method.getName().startsWith(IS))
                 // getter method should have no parameter
                 && method.getParameterList().getParametersCount() == 0
                 // getter method should contain the field name in method name
                 && fields.stream().filter(PsiClassUtil::isNormalField).anyMatch(
-                field -> Objects.equals(field.getName(), getFieldNameInMethod(method, GET)));
+                field -> Objects.equals(field.getName(), getFieldNameInMethod(method, GET_METHOD_TYPE)));
     }
 
     /**
@@ -74,7 +74,7 @@ public class PsiClassUtil {
                 && method.getParameterList().getParametersCount() == 1
                 // setter method should contain the field name in method name
                 && fields.stream().filter(PsiClassUtil::isNormalField).anyMatch(
-                field -> Objects.equals(field.getName(), getFieldNameInMethod(method, SET)));
+                field -> Objects.equals(field.getName(), getFieldNameInMethod(method, SET_METHOD_TYPE)));
     }
 
     /**
@@ -123,15 +123,25 @@ public class PsiClassUtil {
     /**
      * Get field name in method name
      *
-     * @param method method
-     * @param prefix prefix
+     * @param method     method
+     * @param methodType method type
      * @return field name
      */
-    public static String getFieldNameInMethod(PsiMethod method, String prefix) {
-        if (method == null || isBlank(prefix)) {
+    public static String getFieldNameInMethod(PsiMethod method, Integer methodType) {
+        if (method == null) {
             return "";
         }
-        return getFirstCharLowerCase(method.getName().replaceFirst(prefix, ""));
+        String methodName = method.getName();
+        if (GET_METHOD_TYPE.equals(methodType)) {
+            if (methodName.startsWith(GET)) {
+                return getFirstCharLowerCase(methodName.replaceFirst(GET, ""));
+            } else if (methodName.startsWith(IS)) {
+                return getFirstCharLowerCase(methodName.replaceFirst(IS, ""));
+            }
+        } else if (SET_METHOD_TYPE.equals(methodType)) {
+            return getFirstCharLowerCase(methodName.replaceFirst(SET, ""));
+        }
+        return "";
     }
 
 

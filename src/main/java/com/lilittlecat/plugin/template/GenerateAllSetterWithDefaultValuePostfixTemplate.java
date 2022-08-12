@@ -99,6 +99,15 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                         defaultValue = "new " + getClassName(qualifiedName) + "()";
                     }
                 }
+            } else if (parameterType instanceof PsiPrimitiveType) {
+                // parameter type is primitive type.
+                String text = parameterType.getCanonicalText();
+                String staticDefaultValue = DEFAULT_VALUE_MAP.get(text);
+                if (isNotBlank(staticDefaultValue)) {
+                    defaultValue = staticDefaultValue;
+                } else {
+                    defaultValue = "0";
+                }
             } else {
                 // nothing to do.
                 continue;

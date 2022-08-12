@@ -17,6 +17,11 @@ public class Constants {
     public static final String ALL_GETTER_INFO = "Generate all getter()";
     public static final String ALL_SETTER_INFO = "Generate all setter()";
     public static final String ALL_SETTER_WITH_DEFAULT_VALUE_INFO = "Generate all setter() with default value";
+    public static final String GET = "get";
+    public static final String IS = "is";
+    public static final String SET = "set";
+    public static final Integer GET_METHOD_TYPE = 0;
+    public static final Integer SET_METHOD_TYPE = 1;
 
     public static final Map<String, String> DEFAULT_VALUE_MAP = new HashMap<>() {
         {
@@ -61,7 +66,6 @@ public class Constants {
             put("java.util.Collection", "java.util.HashSet");
         }
     };
-
 
 
 }

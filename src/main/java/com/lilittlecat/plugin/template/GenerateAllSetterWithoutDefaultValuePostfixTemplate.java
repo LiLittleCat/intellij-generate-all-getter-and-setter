@@ -13,8 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.lilittlecat.plugin.common.Constants.ALL_SETTER_INFO;
-import static com.lilittlecat.plugin.common.Constants.ALL_SETTER_SUFFIX;
+import static com.lilittlecat.plugin.common.Constants.*;
 import static com.lilittlecat.plugin.util.PsiClassUtil.*;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -40,7 +39,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                                          @NotNull List<PsiField> fields) {
         StringBuilder builder = new StringBuilder();
         for (PsiMethod setterMethod : methods) {
-            String fieldName = getFieldNameInMethod(setterMethod, SET);
+            String fieldName = getFieldNameInMethod(setterMethod, SET_METHOD_TYPE);
             if (isNotBlank(fieldName)) {
                 variableList.add(fieldName);
             }
