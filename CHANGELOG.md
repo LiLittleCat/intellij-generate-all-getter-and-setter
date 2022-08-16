@@ -3,6 +3,8 @@
 # Generate All Getter And Setter Changelog
 
 ## [Unreleased]
+
+## [1.0.6]
 ### Added
 - Support generate get methods include starts with 'is'
 
