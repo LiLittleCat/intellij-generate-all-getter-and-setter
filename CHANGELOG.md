@@ -3,6 +3,8 @@
 # Generate All Getter And Setter Changelog
 
 ## [Unreleased]
+
+## [1.0.7]
 - Add java.util.UUID default value in `.allsetv`
 
 ## [1.0.6]
