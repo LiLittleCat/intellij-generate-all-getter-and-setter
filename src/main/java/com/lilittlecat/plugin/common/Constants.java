@@ -55,6 +55,7 @@ public class Constants {
             put("java.util.HashSet", "new HashSet<>()");
             put("java.util.Map", "new HashMap<>()");
             put("java.util.HashMap", "new HashMap<>()");
+            put("java.util.UUID", "UUID.randomUUID()");
         }
     };
 
