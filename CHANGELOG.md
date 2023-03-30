@@ -6,7 +6,6 @@
 
 ### Added
 - Support for all future IDE builds [#24](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues/24)
-- Update plugin logo [#23](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues/23)
 
 ## [1.0.8] - 2022-12-02
 
