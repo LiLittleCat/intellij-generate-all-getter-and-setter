@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.0.9] - 2023-03-30
+
 ### Added
 - Support for all future IDE builds [#24](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues/24)
 
@@ -54,7 +56,8 @@
 ### Added
 - Postfix completion: <kbd>.allget</kbd>, <kbd>.allset</kbd>, <kbd>.allsetv</kbd>.
 
-[Unreleased]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.8...HEAD
+[Unreleased]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.9...HEAD
+[1.0.9]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.5...v1.0.6
