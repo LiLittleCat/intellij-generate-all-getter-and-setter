@@ -8,6 +8,7 @@ import com.lilittlecat.plugin.util.PsiClassUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.lilittlecat.plugin.common.Constants.*;
 import static com.lilittlecat.plugin.util.PsiClassUtil.*;
@@ -28,6 +29,17 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
                                          @NotNull List<PsiMethod> methods,
                                          @NotNull List<PsiField> fields) {
         StringBuilder builder = new StringBuilder();
+        // handle public static field
+        for (PsiField field : fields) {
+            if (field.hasModifierProperty(PsiModifier.STATIC) && field.hasModifierProperty(PsiModifier.PUBLIC)) {
+                builder.append(field.getType().getCanonicalText()).append(" ")
+                        .append(field.getName()).append(" = ")
+                        .append(Objects.requireNonNull(field.getContainingClass()).getName())
+                        .append(".")
+                        .append(field.getName()).append(";\n");
+            }
+        }
+        // handle getter method
         for (PsiMethod method : methods) {
             PsiType returnType = method.getReturnType();
             if (returnType == null) {

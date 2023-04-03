@@ -171,7 +171,8 @@ public class PsiClassUtil {
     public static List<PsiField> getAllFieldsIncludeSuperClass(PsiClass psiClass) {
         List<PsiField> allFields = new ArrayList<>();
         while (!isSystemClass(psiClass)) {
-            allFields.addAll(List.of(psiClass.getFields()));
+            PsiField[] fields = psiClass.getFields();
+            allFields.addAll(List.of(fields));
             PsiClass superClass = psiClass.getSuperClass();
             if (superClass == null) {
                 break;
