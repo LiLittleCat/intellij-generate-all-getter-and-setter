@@ -52,7 +52,7 @@ public class PsiClassUtil {
                 // getter method should have no parameter
                 && method.getParameterList().getParametersCount() == 0
                 // getter method should contain the field name in method name
-                && fields.stream().filter(PsiClassUtil::isNormalField).anyMatch(
+                && fields.stream().filter(PsiClassUtil::notStaticField).anyMatch(
                 field -> Objects.equals(field.getName(), getFieldNameInMethod(method, GET_METHOD_TYPE)));
     }
 
@@ -89,6 +89,23 @@ public class PsiClassUtil {
         }
         return !(field.hasModifierProperty(PsiModifier.STATIC)
                 || field.hasModifierProperty(PsiModifier.FINAL));
+    }
+
+    /**
+     * judge whether the field is a static field
+     *
+     * @param field the field to be judged
+     * @return true if the field is a static field
+     */
+    public static boolean isStaticField(PsiField field) {
+        if (field == null) {
+            return false;
+        }
+        return field.hasModifierProperty(PsiModifier.STATIC);
+    }
+
+    public static boolean notStaticField(PsiField field) {
+        return !isStaticField(field);
     }
 
 
@@ -154,7 +171,8 @@ public class PsiClassUtil {
     public static List<PsiField> getAllFieldsIncludeSuperClass(PsiClass psiClass) {
         List<PsiField> allFields = new ArrayList<>();
         while (!isSystemClass(psiClass)) {
-            allFields.addAll(List.of(psiClass.getFields()));
+            PsiField[] fields = psiClass.getFields();
+            allFields.addAll(List.of(fields));
             PsiClass superClass = psiClass.getSuperClass();
             if (superClass == null) {
                 break;

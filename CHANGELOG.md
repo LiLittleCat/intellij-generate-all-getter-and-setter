@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+- Support get `final` field when using `.allget` [#22](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues/22)
+- Support get `static` field in `.allget` [#27](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues/27)
+
 ## [1.0.9] - 2023-03-30
 
 ### Added
