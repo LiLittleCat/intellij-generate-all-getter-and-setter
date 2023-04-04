@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.0.10] - 2023-04-04
+
 ### Added
 - Support get `final` field when using `.allget` [#22](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues/22)
 - Support get `static` field in `.allget` [#27](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues/27)
@@ -60,7 +62,8 @@
 ### Added
 - Postfix completion: <kbd>.allget</kbd>, <kbd>.allset</kbd>, <kbd>.allsetv</kbd>.
 
-[Unreleased]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.9...HEAD
+[Unreleased]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.10...HEAD
+[1.0.10]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.9...v1.0.10
 [1.0.9]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.6...v1.0.7
