@@ -14,7 +14,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.intellij.codeInsight.template.postfix.util.JavaPostfixTemplatesUtils.selectorTopmost;
 
@@ -32,7 +36,7 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
     }
 
     /**
-     * which condition can use this template.
+     * only when can find the instance's class can use this template，
      */
     public static final Condition<PsiElement> IS_OK =
             psiElement -> {
@@ -41,7 +45,10 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
                 if (type == null) {
                     return false;
                 }
-                PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(type.getCanonicalText(), psiElement.getResolveScope());
+                // type.getCanonicalText()
+                String className = type.getCanonicalText();
+                PsiClass psiClass = JavaPsiFacade.getInstance(project)
+                        .findClass(className.substring(0, className.indexOf("<")), psiElement.getResolveScope());
                 return psiClass != null;
             };
 
@@ -55,9 +62,13 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
         return false;
     }
 
+    public static final Pattern genericTypePattern = Pattern.compile("<(.*?)>");
+
+    protected final Map<String, Map<String, String>> genericTypeMap = new HashMap<>();
+
     /**
      * reference:
-     * com.intellij.codeInsight.template.postfix.templates.editable.EditablePostfixTemplate#expandForChooseExpression(PsiElement, Editor)
+     * {@link com.intellij.codeInsight.template.postfix.templates.editable.EditablePostfixTemplate#expandForChooseExpression(PsiElement, Editor)}
      *
      * @param expression the expression.
      * @param editor     the editor.
@@ -72,6 +83,18 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
         PsiType type = ((PsiExpression) expression).getType();
         assert type != null;
         String className = type.getCanonicalText();
+        // begin
+        List<String> genericTypeClassNameList = new ArrayList<>();
+        Matcher matcher = genericTypePattern.matcher(className);
+        if (matcher.find()) {
+            // Has generic types
+            String typeArgs = matcher.group(1);
+            for (String name : typeArgs.split(",")) {
+                genericTypeClassNameList.add(name.trim());
+            }
+            className = className.substring(0, className.indexOf("<"));
+        }
+        // end
         PsiClass psiClass = JavaPsiFacade.getInstance(expression.getProject()).findClass(className, expression.getResolveScope());
         assert psiClass != null;
         List<PsiField> fields = PsiClassUtil.getAllFieldsIncludeSuperClass(psiClass);
