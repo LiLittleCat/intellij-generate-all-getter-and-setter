@@ -64,7 +64,14 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
 
     public static final Pattern genericTypePattern = Pattern.compile("<(.*?)>");
 
-    protected final Map<String, Map<String, String>> genericTypeMap = new HashMap<>();
+    protected Boolean hasGenericType = false;
+
+    public static final Map<String, Map<String, String>> genericTypeMap = new HashMap<>();
+
+    protected void clearState() {
+        hasGenericType = false;
+        genericTypeMap.clear();
+    }
 
     /**
      * reference:
@@ -83,10 +90,12 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
         PsiType type = ((PsiExpression) expression).getType();
         assert type != null;
         String className = type.getCanonicalText();
-        // begin
+        // Gets the generic type of the instance
         List<String> genericTypeClassNameList = new ArrayList<>();
-        Matcher matcher = genericTypePattern.matcher(className);
+        Pattern pattern = Pattern.compile("^[^<]*<(.*)>");
+        Matcher matcher = pattern.matcher(className);
         if (matcher.find()) {
+            hasGenericType = true;
             // Has generic types
             String typeArgs = matcher.group(1);
             for (String name : typeArgs.split(",")) {
@@ -94,9 +103,16 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
             }
             className = className.substring(0, className.indexOf("<"));
         }
-        // end
         PsiClass psiClass = JavaPsiFacade.getInstance(expression.getProject()).findClass(className, expression.getResolveScope());
         assert psiClass != null;
+        // Gets the generic placeholder in the class
+        PsiTypeParameter[] typeParameters = psiClass.getTypeParameters();
+        if (!genericTypeClassNameList.isEmpty() && typeParameters.length == genericTypeClassNameList.size()) {
+            for (int i = 0; i < typeParameters.length; i++) {
+                Map<String, String> map = genericTypeMap.computeIfAbsent(psiClass.getQualifiedName(), k -> new HashMap<>());
+                map.put(typeParameters[i].getName(), genericTypeClassNameList.get(i));
+            }
+        }
         List<PsiField> fields = PsiClassUtil.getAllFieldsIncludeSuperClass(psiClass);
         // get all methods from class include super classes.
         List<PsiMethod> methods = new ArrayList<>();
@@ -113,7 +129,7 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
         template = modifyTemplate(template);
         template.setToReformat(true);
         manager.startTemplate(editor, template);
-
+        clearState();
     }
 
     /**
