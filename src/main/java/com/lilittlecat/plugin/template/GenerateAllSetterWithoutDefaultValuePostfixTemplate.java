@@ -59,6 +59,11 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
             String fieldName = getFieldNameInMethod(setterMethod, SET_METHOD_TYPE);
             String methodName = setterMethod.getName();
             
+            if ("__empty__".equals(fieldName)) {
+                // 如果字段名是特殊标记，跳过此方法
+                continue;
+            }
+            
             if (isNotBlank(fieldName)) {
                 boolean variableAdded = false; // 跟踪变量是否已添加
                 
@@ -160,7 +165,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                     variableList.add(fieldName);
                 }
             } else {
-                // 如果fieldName为空，使用一个默认名称确保变量被添加
+                // 如果fieldName为空（但不是__empty__标记），使用一个默认名称确保变量被添加
                 variableList.add("value");
                 fieldName = "value";
             }

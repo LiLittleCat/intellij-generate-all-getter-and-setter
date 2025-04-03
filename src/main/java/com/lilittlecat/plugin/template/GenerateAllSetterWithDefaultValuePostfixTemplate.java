@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 
 import static com.lilittlecat.plugin.common.Constants.*;
 import static com.lilittlecat.plugin.util.PsiClassUtil.isValidSetterMethod;
+import static com.lilittlecat.plugin.util.PsiClassUtil.getFieldNameInMethod;
+import static com.lilittlecat.plugin.common.Constants.SET_METHOD_TYPE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -54,6 +56,13 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
         // 初始化标记
         hasOnlyComments = true;
         for (PsiMethod setterMethod : methods) {
+            // 检查是否是set()方法（没有对应字段名）
+            String fieldName = getFieldNameInMethod(setterMethod, SET_METHOD_TYPE);
+            if ("__empty__".equals(fieldName)) {
+                // 如果字段名是特殊标记，跳过此方法
+                continue;
+            }
+            
             // parameters of setter method.
             PsiParameter parameter = setterMethod.getParameterList().getParameters()[0];
             PsiType parameterType = parameter.getType();

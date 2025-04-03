@@ -46,6 +46,11 @@ public class PsiClassUtil {
         if (method == null) {
             return false;
         }
+        String fieldName = getFieldNameInMethod(method, GET_METHOD_TYPE);
+        if ("__empty__".equals(fieldName)) {
+            return false; // 如果方法名就是"get"或"is"没有对应字段名，则不是有效的getter
+        }
+        
         return method.hasModifierProperty(PsiModifier.PUBLIC)
                 && !method.hasModifierProperty(PsiModifier.STATIC)
                 && (method.getName().startsWith(GET) || method.getName().startsWith(IS))
@@ -53,7 +58,7 @@ public class PsiClassUtil {
                 && method.getParameterList().getParametersCount() == 0
                 // getter method should contain the field name in method name
                 && fields.stream().filter(PsiClassUtil::notStaticField).anyMatch(
-                field -> Objects.equals(field.getName(), getFieldNameInMethod(method, GET_METHOD_TYPE)));
+                field -> Objects.equals(field.getName(), fieldName));
     }
 
     /**
@@ -67,6 +72,11 @@ public class PsiClassUtil {
         if (method == null) {
             return false;
         }
+        String fieldName = getFieldNameInMethod(method, SET_METHOD_TYPE);
+        if ("__empty__".equals(fieldName)) {
+            return false; // 如果方法名就是"set"没有对应字段名，则不是有效的setter
+        }
+        
         return method.hasModifierProperty(PsiModifier.PUBLIC)
                 && !method.hasModifierProperty(PsiModifier.STATIC)
                 && (method.getName().startsWith(SET))
@@ -74,7 +84,7 @@ public class PsiClassUtil {
                 && method.getParameterList().getParametersCount() == 1
                 // setter method should contain the field name in method name
                 && fields.stream().filter(PsiClassUtil::isNormalField).anyMatch(
-                field -> Objects.equals(field.getName(), getFieldNameInMethod(method, SET_METHOD_TYPE)));
+                field -> Objects.equals(field.getName(), fieldName));
     }
 
     /**
@@ -134,7 +144,10 @@ public class PsiClassUtil {
     }
 
     public static String getFirstCharLowerCase(String fieldName) {
-        return fieldName.substring(0, 1).toLowerCase() + fieldName.substring(1);
+        if (fieldName == null || fieldName.isEmpty()) {
+            return fieldName; // 返回原始值，避免空字符串异常
+        }
+        return fieldName.substring(0, 1).toLowerCase() + (fieldName.length() > 1 ? fieldName.substring(1) : "");
     }
 
     /**
@@ -149,16 +162,24 @@ public class PsiClassUtil {
             return "";
         }
         String methodName = method.getName();
+        String result = "";
+        
         if (GET_METHOD_TYPE.equals(methodType)) {
             if (methodName.startsWith(GET)) {
-                return getFirstCharLowerCase(methodName.replaceFirst(GET, ""));
+                result = methodName.replaceFirst(GET, "");
             } else if (methodName.startsWith(IS)) {
-                return getFirstCharLowerCase(methodName.replaceFirst(IS, ""));
+                result = methodName.replaceFirst(IS, "");
             }
         } else if (SET_METHOD_TYPE.equals(methodType)) {
-            return getFirstCharLowerCase(methodName.replaceFirst(SET, ""));
+            result = methodName.replaceFirst(SET, "");
         }
-        return "";
+        
+        // 如果方法名就是"get"/"is"/"set"，则结果为空字符串，此时返回一个特殊标记
+        if (result.isEmpty()) {
+            return "__empty__"; // 使用特殊标记表示方法名无对应字段名
+        }
+        
+        return getFirstCharLowerCase(result);
     }
 
 

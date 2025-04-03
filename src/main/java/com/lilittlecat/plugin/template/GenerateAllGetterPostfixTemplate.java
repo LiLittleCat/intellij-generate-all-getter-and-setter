@@ -49,11 +49,17 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
             }
             String methodName = method.getName();
             
-            // 处理泛型类型
+            // 解析返回类型（包括泛型）
             String returnTypeText = returnType.getCanonicalText();
+            String fieldName = getFieldNameInMethod(method, GET_METHOD_TYPE);
             
-            // 只有当类定义中包含泛型参数时才进行处理
-            if (hasGenericType) {
+            // 如果字段名是特殊标记，跳过此方法
+            if ("__empty__".equals(fieldName)) {
+                continue;
+            }
+            
+            // 处理返回类型中的泛型
+            if (hasGenericType && returnType instanceof PsiClassType) {
                 Map<String, String> typeMap = genericTypeMap.get(((PsiExpression) expression).getType().getCanonicalText().split("<")[0]);
                 if (typeMap != null && !typeMap.isEmpty()) {
                     if (returnTypeText.contains("<")) {
@@ -91,7 +97,7 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
             }
             
             builder.append(returnTypeText).append(" ")
-                    .append(getFieldNameInMethod(method, GET_METHOD_TYPE))
+                    .append(fieldName)
                     .append(" = ").append(expression.getText()).append(".").append(methodName).append("();\n");
         }
         builder.append("$END$");
