@@ -9,6 +9,7 @@ import com.lilittlecat.plugin.util.PsiClassUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,11 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
      * 储存方法名到变量名的映射，确保每个setter方法都有对应的变量
      */
     private final Map<String, String> methodToVariableMap = new HashMap<>();
+    
+    /**
+     * 标记模板是否只包含注释
+     */
+    private boolean hasOnlyComments = false;
 
     @Override
     protected String buildTemplateString(@NotNull PsiElement expression,
@@ -45,8 +51,9 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                                          @NotNull List<PsiMethod> methods,
                                          @NotNull List<PsiField> fields) {
         StringBuilder builder = new StringBuilder();
-        // 清除之前的映射
+        // 清除之前的映射和标记
         methodToVariableMap.clear();
+        hasOnlyComments = true; // 默认假设只有注释
         
         for (PsiMethod setterMethod : methods) {
             String fieldName = getFieldNameInMethod(setterMethod, SET_METHOD_TYPE);
@@ -69,13 +76,27 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                             if (typeMap != null && !typeMap.isEmpty()) {
                                 String resolvedType = resolveGenericParameterType(paramTypeText, typeMap, (PsiTypeParameter) paramClass);
                                 if (!resolvedType.equals(paramTypeText)) {
+                                    // 如果成功解析了泛型类型
                                     variableList.add(fieldName + " // Type: " + resolvedType);
                                     variableAdded = true;
                                     builder.append(expression.getText()).append(".").append(setterMethod.getName())
                                         .append("($").append(fieldName).append("$);\n");
                                     methodToVariableMap.put(methodName, fieldName);
+                                    hasOnlyComments = false; // 有真实代码
+                                    continue;
+                                } else {
+                                    // 泛型参数未知，添加注释
+                                    builder.append("// Generic type parameter ").append(paramTypeText)
+                                           .append(" is unknown. Please specify the generic type for ")
+                                           .append(setterMethod.getName()).append(".\n");
                                     continue;
                                 }
+                            } else {
+                                // 未提供泛型类型信息，添加注释
+                                builder.append("// Generic type parameter ").append(paramTypeText)
+                                       .append(" is not specified. Please use a parameterized type for ")
+                                       .append(expression.getText()).append(".\n");
+                                continue;
                             }
                         }
                     }
@@ -87,15 +108,49 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                         String resolvedType = handleRawType(paramTypeText, typeMap);
                         // 如果仍然包含泛型标记，则保留类型信息
                         if (resolvedType.contains("<")) {
-                            variableList.add(fieldName + " // Type: " + resolvedType);
+                            // 检查解析后的类型是否与原始类型相同（表示未能具体化泛型）
+                            boolean containsUnresolvedTypeVar = false;
+                            Matcher matcher = Pattern.compile("<([^<>]+)>").matcher(resolvedType);
+                            if (matcher.find()) {
+                                String typeVars = matcher.group(1);
+                                // 检查是否包含未解析的类型变量（单个字母或简单标识符）
+                                containsUnresolvedTypeVar = typeVars.split(",").length > 0 && 
+                                                         Arrays.stream(typeVars.split(","))
+                                                               .map(String::trim)
+                                                               .anyMatch(s -> !s.contains(".") && s.matches("[A-Z][a-zA-Z0-9]*"));
+                            }
+                            
+                            if (containsUnresolvedTypeVar) {
+                                // 包含未解析的类型变量，添加注释
+                                builder.append("// Generic type in ").append(paramTypeText)
+                                       .append(" is not fully specified. Please use a fully parameterized type for ")
+                                       .append(setterMethod.getName()).append(".\n");
+                                continue;
+                            } else {
+                                // 泛型已解析，生成带类型信息的代码
+                                variableList.add(fieldName + " // Type: " + resolvedType);
+                                variableAdded = true;
+                                builder.append(expression.getText()).append(".").append(setterMethod.getName())
+                                    .append("($").append(fieldName).append("$);\n");
+                                methodToVariableMap.put(methodName, fieldName);
+                                hasOnlyComments = false; // 有真实代码
+                                continue;
+                            }
                         } else {
-                            // 原始类型，不添加泛型信息
+                            // 已解析为原始类型，添加正常代码
                             variableList.add(fieldName);
+                            variableAdded = true;
+                            builder.append(expression.getText()).append(".").append(setterMethod.getName())
+                                .append("($").append(fieldName).append("$);\n");
+                            methodToVariableMap.put(methodName, fieldName);
+                            hasOnlyComments = false; // 有真实代码
+                            continue;
                         }
-                        variableAdded = true;
-                        builder.append(expression.getText()).append(".").append(setterMethod.getName())
-                            .append("($").append(fieldName).append("$);\n");
-                        methodToVariableMap.put(methodName, fieldName);
+                    } else if (paramTypeText.contains("<")) {
+                        // 包含泛型但没有类型映射，添加注释
+                        builder.append("// Cannot resolve generic types in ").append(paramTypeText)
+                               .append(". Please use a parameterized type for ")
+                               .append(expression.getText()).append(".\n");
                         continue;
                     }
                 }
@@ -113,6 +168,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                     .append("($").append(fieldName).append("$);\n");
             // 记录方法名到变量名的映射
             methodToVariableMap.put(methodName, fieldName);
+            hasOnlyComments = false; // 有真实代码
         }
         builder.append("$END$");
         return builder.toString();
@@ -121,6 +177,14 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
     @Override
     protected Template modifyTemplate(Template template) {
         try {
+            // 如果模板只包含注释，添加一个隐藏的占位变量
+            if (hasOnlyComments) {
+                // 添加一个隐藏变量，但不会在编辑器中显示
+                template.addVariable("_dummy", "\"\"", "\"\"", false);
+                // 不要在模板中添加警告，它会使模板非法
+                return template;
+            }
+            
             // 确保变量列表不为空
             if (variableList.isEmpty() && methodToVariableMap.isEmpty()) {
                 template.addVariable("value", "\"\"", "\"\"", true);

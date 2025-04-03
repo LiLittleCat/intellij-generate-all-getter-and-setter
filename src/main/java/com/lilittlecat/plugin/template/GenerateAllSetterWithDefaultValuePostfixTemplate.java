@@ -9,6 +9,7 @@ import com.intellij.psi.util.PsiTypesUtil;
 import com.lilittlecat.plugin.util.PsiClassUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -37,6 +38,11 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
      * new import set
      */
     Set<String> newImportSet = new HashSet<>();
+    
+    /**
+     * 标记模板是否只包含注释
+     */
+    private boolean hasOnlyComments = false;
 
     @Override
     protected String buildTemplateString(@NotNull PsiElement expression,
@@ -45,6 +51,8 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                                          @NotNull List<PsiField> fields) {
         StringBuilder builder = new StringBuilder();
         String defaultValue = "";
+        // 初始化标记
+        hasOnlyComments = true;
         for (PsiMethod setterMethod : methods) {
             // parameters of setter method.
             PsiParameter parameter = setterMethod.getParameterList().getParameters()[0];
@@ -76,8 +84,21 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                                 }
                                 builder.append(expression.getText()).append(".").append(setterMethod.getName())
                                     .append("(").append(defaultValue).append(");\n");
+                                hasOnlyComments = false;
+                                continue;
+                            } else {
+                                // 泛型参数未知，添加注释
+                                builder.append("// Generic type parameter ").append(parameterType.getCanonicalText())
+                                       .append(" is unknown. Please specify the generic type for ")
+                                       .append(setterMethod.getName()).append(".\n");
                                 continue;
                             }
+                        } else {
+                            // 未提供泛型类型信息，添加注释
+                            builder.append("// Generic type parameter ").append(parameterType.getCanonicalText())
+                                   .append(" is not specified. Please use a parameterized type for ")
+                                   .append(expression.getText()).append(".\n");
+                            continue;
                         }
                     }
                 }
@@ -125,6 +146,28 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                         if (typeMap != null && !typeMap.isEmpty()) {
                             // 首先检查是否是原始类型
                             String resolvedType = handleRawType(text, typeMap);
+                            
+                            // 检查解析后的类型是否仍包含未解析的泛型参数
+                            boolean containsUnresolvedTypeVar = false;
+                            if (resolvedType.contains("<")) {
+                                Matcher genericMatcher = Pattern.compile("<([^<>]+)>").matcher(resolvedType);
+                                if (genericMatcher.find()) {
+                                    String typeVars = genericMatcher.group(1);
+                                    // 检查是否包含未解析的类型变量（单个字母或简单标识符）
+                                    containsUnresolvedTypeVar = Arrays.stream(typeVars.split(","))
+                                                                 .map(String::trim)
+                                                                 .anyMatch(s -> !s.contains(".") && s.matches("[A-Z][a-zA-Z0-9]*"));
+                                }
+                            }
+                            
+                            if (containsUnresolvedTypeVar) {
+                                // 泛型参数未完全具体化，添加注释
+                                builder.append("// Generic type in ").append(text)
+                                       .append(" is not fully specified. Please use a fully parameterized type for ")
+                                       .append(setterMethod.getName()).append(".\n");
+                                continue;
+                            }
+                            
                             // 如果处理后类型中不包含泛型，则使用基本的默认值
                             if (!resolvedType.contains("<")) {
                                 String staticDefaultValue = DEFAULT_VALUE_MAP.get(fieldType);
@@ -145,6 +188,12 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                                     }
                                 }
                             }
+                        } else {
+                            // 未提供泛型类型信息，添加注释
+                            builder.append("// Cannot resolve generic types in ").append(text)
+                                   .append(". Please use a parameterized type for ")
+                                   .append(expression.getText()).append(".\n");
+                            continue;
                         }
                     }
                 }
@@ -180,7 +229,7 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
             }
             builder.append(expression.getText()).append(".").append(setterMethod.getName())
                     .append("(").append(defaultValue).append(");\n");
-
+            hasOnlyComments = false;
         }
         builder.append("$END$");
 
@@ -193,6 +242,11 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
 
     @Override
     protected Template modifyTemplate(Template template) {
+        // 如果模板只包含注释，添加一个隐藏的占位变量
+        if (hasOnlyComments) {
+            // 添加一个隐藏变量，但不会在编辑器中显示
+            template.addVariable("_dummy", "\"\"", "\"\"", false);
+        }
         return template;
     }
 
