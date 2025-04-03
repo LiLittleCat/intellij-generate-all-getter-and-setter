@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -109,31 +110,69 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                     // 然后处理包含泛型的参数类型
                     Map<String, String> typeMap = genericTypeMap.get(((PsiExpression) expression).getType().getCanonicalText().split("<")[0]);
                     if (typeMap != null && !typeMap.isEmpty() && paramTypeText.contains("<")) {
-                        // 首先检查是否是原始类型
-                        String resolvedType = handleRawType(paramTypeText, typeMap);
-                        // 如果仍然包含泛型标记，则保留类型信息
-                        if (resolvedType.contains("<")) {
-                            // 检查解析后的类型是否与原始类型相同（表示未能具体化泛型）
-                            boolean containsUnresolvedTypeVar = false;
-                            Matcher matcher = Pattern.compile("<([^<>]+)>").matcher(resolvedType);
-                            if (matcher.find()) {
-                                String typeVars = matcher.group(1);
-                                // 检查是否包含未解析的类型变量（单个字母或简单标识符）
-                                containsUnresolvedTypeVar = typeVars.split(",").length > 0 && 
-                                                         Arrays.stream(typeVars.split(","))
-                                                               .map(String::trim)
-                                                               .anyMatch(s -> !s.contains(".") && s.matches("[A-Z][a-zA-Z0-9]*"));
+                        // 获取类的所有类型参数名称
+                        HashSet<String> classTypeParamNames = new HashSet<>();
+                        if (expression instanceof PsiExpression) {
+                            PsiType exprType = ((PsiExpression) expression).getType();
+                            if (exprType instanceof PsiClassType) {
+                                PsiClass psiClass = ((PsiClassType) exprType).resolve();
+                                if (psiClass != null) {
+                                    PsiTypeParameter[] typeParameters = psiClass.getTypeParameters();
+                                    for (PsiTypeParameter tp : typeParameters) {
+                                        classTypeParamNames.add(tp.getName());
+                                    }
+                                }
                             }
-                            
-                            if (containsUnresolvedTypeVar) {
-                                // 包含未解析的类型变量，添加注释
-                                builder.append("// Generic type in ").append(paramTypeText)
-                                       .append(" is not fully specified. Please use a fully parameterized type for ")
-                                       .append(setterMethod.getName()).append(".\n");
-                                continue;
+                        }
+                        
+                        // 检查参数类型是否使用了类的泛型参数
+                        boolean containsClassTypeParameter = false;
+                        for (String paramName : classTypeParamNames) {
+                            if (paramTypeText.contains("<" + paramName + ">") || 
+                                paramTypeText.contains("<" + paramName + ",") ||
+                                paramTypeText.contains(", " + paramName + ">") ||
+                                paramTypeText.contains(", " + paramName + ",")) {
+                                containsClassTypeParameter = true;
+                                break;
+                            }
+                        }
+                        
+                        // 只有当参数类型包含类的泛型参数时，才需要特殊处理
+                        if (containsClassTypeParameter) {
+                            // 首先检查是否是原始类型
+                            String resolvedType = handleRawType(paramTypeText, typeMap);
+                            // 如果仍然包含泛型标记，则保留类型信息
+                            if (resolvedType.contains("<")) {
+                                // 检查解析后的类型是否与原始类型相同（表示未能具体化泛型）
+                                boolean containsUnresolvedTypeVar = false;
+                                Matcher matcher = Pattern.compile("<([^<>]+)>").matcher(resolvedType);
+                                if (matcher.find()) {
+                                    String typeVars = matcher.group(1);
+                                    // 检查是否包含未解析的类型变量（只考虑类的泛型参数）
+                                    containsUnresolvedTypeVar = Arrays.stream(typeVars.split(","))
+                                                                 .map(String::trim)
+                                                                 .anyMatch(s -> !s.contains(".") && classTypeParamNames.contains(s));
+                                }
+                                
+                                if (containsUnresolvedTypeVar) {
+                                    // 包含未解析的类型变量，添加注释
+                                    builder.append("// Generic type in ").append(paramTypeText)
+                                           .append(" is not fully specified. Please use a parameterized type for ")
+                                           .append(expression.getText()).append(".\n");
+                                    continue;
+                                } else {
+                                    // 泛型已解析，生成带类型信息的代码
+                                    variableList.add(fieldName + " // Type: " + resolvedType);
+                                    variableAdded = true;
+                                    builder.append(expression.getText()).append(".").append(setterMethod.getName())
+                                        .append("($").append(fieldName).append("$);\n");
+                                    methodToVariableMap.put(methodName, fieldName);
+                                    hasOnlyComments = false; // 有真实代码
+                                    continue;
+                                }
                             } else {
-                                // 泛型已解析，生成带类型信息的代码
-                                variableList.add(fieldName + " // Type: " + resolvedType);
+                                // 已解析为原始类型，添加正常代码
+                                variableList.add(fieldName);
                                 variableAdded = true;
                                 builder.append(expression.getText()).append(".").append(setterMethod.getName())
                                     .append("($").append(fieldName).append("$);\n");
@@ -142,7 +181,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                                 continue;
                             }
                         } else {
-                            // 已解析为原始类型，添加正常代码
+                            // 不包含类的泛型参数，按正常方式处理
                             variableList.add(fieldName);
                             variableAdded = true;
                             builder.append(expression.getText()).append(".").append(setterMethod.getName())
@@ -152,11 +191,49 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                             continue;
                         }
                     } else if (paramTypeText.contains("<")) {
-                        // 包含泛型但没有类型映射，添加注释
-                        builder.append("// Cannot resolve generic types in ").append(paramTypeText)
-                               .append(". Please use a parameterized type for ")
-                               .append(expression.getText()).append(".\n");
-                        continue;
+                        // 获取类的所有类型参数名称
+                        HashSet<String> classTypeParamNames = new HashSet<>();
+                        if (expression instanceof PsiExpression) {
+                            PsiType exprType = ((PsiExpression) expression).getType();
+                            if (exprType instanceof PsiClassType) {
+                                PsiClass psiClass = ((PsiClassType) exprType).resolve();
+                                if (psiClass != null) {
+                                    PsiTypeParameter[] typeParameters = psiClass.getTypeParameters();
+                                    for (PsiTypeParameter tp : typeParameters) {
+                                        classTypeParamNames.add(tp.getName());
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 检查参数类型是否使用了类的泛型参数
+                        boolean containsClassTypeParameter = false;
+                        for (String paramName : classTypeParamNames) {
+                            if (paramTypeText.contains("<" + paramName + ">") || 
+                                paramTypeText.contains("<" + paramName + ",") ||
+                                paramTypeText.contains(", " + paramName + ">") ||
+                                paramTypeText.contains(", " + paramName + ",")) {
+                                containsClassTypeParameter = true;
+                                break;
+                            }
+                        }
+                        
+                        if (containsClassTypeParameter) {
+                            // 包含类的泛型参数但没有类型映射，添加注释
+                            builder.append("// Cannot resolve generic types in ").append(paramTypeText)
+                                   .append(" that use class type parameters. Please use a parameterized type for ")
+                                   .append(expression.getText()).append(".\n");
+                            continue;
+                        } else {
+                            // 不包含类的泛型参数，按正常方式处理
+                            variableList.add(fieldName);
+                            variableAdded = true;
+                            builder.append(expression.getText()).append(".").append(setterMethod.getName())
+                                .append("($").append(fieldName).append("$);\n");
+                            methodToVariableMap.put(methodName, fieldName);
+                            hasOnlyComments = false; // 有真实代码
+                            continue;
+                        }
                     }
                 }
                 

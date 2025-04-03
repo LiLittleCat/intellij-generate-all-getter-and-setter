@@ -153,56 +153,137 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                     if (hasGenericType && text.contains("<")) {
                         Map<String, String> typeMap = genericTypeMap.get(((PsiExpression) expression).getType().getCanonicalText().split("<")[0]);
                         if (typeMap != null && !typeMap.isEmpty()) {
-                            // 首先检查是否是原始类型
-                            String resolvedType = handleRawType(text, typeMap);
+                            // 首先检查类型中是否包含了类定义的泛型参数
+                            boolean containsClassTypeParameter = false;
                             
-                            // 检查解析后的类型是否仍包含未解析的泛型参数
-                            boolean containsUnresolvedTypeVar = false;
-                            if (resolvedType.contains("<")) {
-                                Matcher genericMatcher = Pattern.compile("<([^<>]+)>").matcher(resolvedType);
-                                if (genericMatcher.find()) {
-                                    String typeVars = genericMatcher.group(1);
-                                    // 检查是否包含未解析的类型变量（单个字母或简单标识符）
-                                    containsUnresolvedTypeVar = Arrays.stream(typeVars.split(","))
-                                                                 .map(String::trim)
-                                                                 .anyMatch(s -> !s.contains(".") && s.matches("[A-Z][a-zA-Z0-9]*"));
+                            // 获取类的所有类型参数名称
+                            Set<String> classTypeParamNames = new HashSet<>();
+                            if (expression instanceof PsiExpression) {
+                                PsiType exprType = ((PsiExpression) expression).getType();
+                                if (exprType instanceof PsiClassType) {
+                                    PsiClass psiClass = ((PsiClassType) exprType).resolve();
+                                    if (psiClass != null) {
+                                        PsiTypeParameter[] typeParameters = psiClass.getTypeParameters();
+                                        for (PsiTypeParameter tp : typeParameters) {
+                                            classTypeParamNames.add(tp.getName());
+                                        }
+                                    }
                                 }
                             }
                             
-                            if (containsUnresolvedTypeVar) {
-                                // 泛型参数未完全具体化，添加注释
-                                builder.append("// Generic type in ").append(text)
-                                       .append(" is not fully specified. Please use a fully parameterized type for ")
-                                       .append(setterMethod.getName()).append(".\n");
-                                continue;
+                            // 检查参数类型是否使用了类的泛型参数
+                            for (String paramName : classTypeParamNames) {
+                                if (text.contains("<" + paramName + ">") || 
+                                    text.contains("<" + paramName + ",") ||
+                                    text.contains(", " + paramName + ">") ||
+                                    text.contains(", " + paramName + ",")) {
+                                    containsClassTypeParameter = true;
+                                    break;
+                                }
                             }
                             
-                            // 如果处理后类型中不包含泛型，则使用基本的默认值
-                            if (!resolvedType.contains("<")) {
+                            // 只处理包含类型参数的泛型
+                            if (containsClassTypeParameter) {
+                                // 首先检查是否是原始类型
+                                String resolvedType = handleRawType(text, typeMap);
+                                
+                                // 检查解析后的类型是否仍包含未解析的泛型参数
+                                boolean containsUnresolvedTypeVar = false;
+                                if (resolvedType.contains("<")) {
+                                    Matcher genericMatcher = Pattern.compile("<([^<>]+)>").matcher(resolvedType);
+                                    if (genericMatcher.find()) {
+                                        String typeVars = genericMatcher.group(1);
+                                        // 检查是否包含未解析的类型变量（单个字母或简单标识符）
+                                        containsUnresolvedTypeVar = Arrays.stream(typeVars.split(","))
+                                                                     .map(String::trim)
+                                                                     .anyMatch(s -> !s.contains(".") && classTypeParamNames.contains(s));
+                                    }
+                                }
+                                
+                                if (containsUnresolvedTypeVar) {
+                                    // 泛型参数未完全具体化，添加注释
+                                    builder.append("// Generic type in ").append(text)
+                                           .append(" is not fully specified. Please use a parameterized type for ")
+                                           .append(expression.getText()).append(".\n");
+                                    continue;
+                                }
+                                
+                                // 如果处理后类型中不包含泛型，则使用基本的默认值
+                                if (!resolvedType.contains("<")) {
+                                    String staticDefaultValue = DEFAULT_VALUE_MAP.get(fieldType);
+                                    if (isNotBlank(staticDefaultValue)) {
+                                        defaultValue = staticDefaultValue;
+                                    } else {
+                                        defaultValue = "new " + getClassName(fieldType) + "()";
+                                    }
+                                } else {
+                                    // 从嵌套泛型中提取实际类型参数
+                                    Matcher genericMatcher = genericTypePattern.matcher(resolvedType);
+                                    if (genericMatcher.find()) {
+                                        String actualTypeParam = genericMatcher.group(1);
+                                        // 根据类型创建合适的默认值
+                                        String genericDefaultValue = createGenericDefaultValue(fieldType, actualTypeParam);
+                                        if (genericDefaultValue != null) {
+                                            defaultValue = genericDefaultValue;
+                                        }
+                                    }
+                                }
+                            } else {
+                                // 不包含类的泛型参数，按正常类型处理
                                 String staticDefaultValue = DEFAULT_VALUE_MAP.get(fieldType);
                                 if (isNotBlank(staticDefaultValue)) {
                                     defaultValue = staticDefaultValue;
                                 } else {
                                     defaultValue = "new " + getClassName(fieldType) + "()";
                                 }
-                            } else {
-                                // 从嵌套泛型中提取实际类型参数
-                                Matcher genericMatcher = genericTypePattern.matcher(resolvedType);
-                                if (genericMatcher.find()) {
-                                    String actualTypeParam = genericMatcher.group(1);
-                                    // 根据类型创建合适的默认值
-                                    String genericDefaultValue = createGenericDefaultValue(fieldType, actualTypeParam);
-                                    if (genericDefaultValue != null) {
-                                        defaultValue = genericDefaultValue;
+                                newImportSet.add(fieldType);
+                            }
+                        } else if (typeMap == null || typeMap.isEmpty()) {
+                            // 检查类型中是否包含了类定义的泛型参数
+                            boolean containsClassTypeParameter = false;
+                            
+                            // 获取类的所有类型参数名称
+                            Set<String> classTypeParamNames = new HashSet<>();
+                            if (expression instanceof PsiExpression) {
+                                PsiType exprType = ((PsiExpression) expression).getType();
+                                if (exprType instanceof PsiClassType) {
+                                    PsiClass psiClass = ((PsiClassType) exprType).resolve();
+                                    if (psiClass != null) {
+                                        PsiTypeParameter[] typeParameters = psiClass.getTypeParameters();
+                                        for (PsiTypeParameter tp : typeParameters) {
+                                            classTypeParamNames.add(tp.getName());
+                                        }
                                     }
                                 }
                             }
-                        } else {
-                            // 未提供泛型类型信息，添加注释
-                            builder.append("// Cannot resolve generic types in ").append(text)
-                                   .append(". Please use a parameterized type for ")
-                                   .append(expression.getText()).append(".\n");
-                            continue;
+                            
+                            // 检查参数类型是否使用了类的泛型参数
+                            for (String paramName : classTypeParamNames) {
+                                if (text.contains("<" + paramName + ">") || 
+                                    text.contains("<" + paramName + ",") ||
+                                    text.contains(", " + paramName + ">") ||
+                                    text.contains(", " + paramName + ",")) {
+                                    containsClassTypeParameter = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (containsClassTypeParameter) {
+                                // 未提供泛型类型信息，添加注释
+                                builder.append("// Cannot resolve generic types in ").append(text)
+                                       .append(" that use class type parameters. Please use a parameterized type for ")
+                                       .append(expression.getText()).append(".\n");
+                                continue;
+                            } else {
+                                // 不包含类的泛型参数，按正常类型处理
+                                String staticDefaultValue = DEFAULT_VALUE_MAP.get(fieldType);
+                                if (isNotBlank(staticDefaultValue)) {
+                                    defaultValue = staticDefaultValue;
+                                } else {
+                                    defaultValue = "new " + getClassName(fieldType) + "()";
+                                }
+                                newImportSet.add(fieldType);
+                            }
                         }
                     }
                 }
