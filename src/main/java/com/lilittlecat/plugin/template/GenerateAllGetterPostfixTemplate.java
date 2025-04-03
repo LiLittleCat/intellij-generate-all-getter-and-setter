@@ -51,11 +51,43 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
             
             // 处理泛型类型
             String returnTypeText = returnType.getCanonicalText();
+            
             // 只有当类定义中包含泛型参数时才进行处理
-            if (hasGenericType && returnTypeText.contains("<")) {
+            if (hasGenericType) {
                 Map<String, String> typeMap = genericTypeMap.get(((PsiExpression) expression).getType().getCanonicalText().split("<")[0]);
-                // 使用handleRawType方法处理，如果是原始类型则去除泛型部分
-                returnTypeText = handleRawType(returnTypeText, typeMap);
+                if (typeMap != null && !typeMap.isEmpty()) {
+                    if (returnTypeText.contains("<")) {
+                        // 处理返回类型中包含泛型的情况
+                        returnTypeText = handleRawType(returnTypeText, typeMap);
+                    } else {
+                        // 处理返回类型本身就是泛型参数的情况
+                        if (returnType instanceof PsiClassType) {
+                            PsiClass returnClass = ((PsiClassType) returnType).resolve();
+                            if (returnClass instanceof PsiTypeParameter) {
+                                // 返回类型是类型参数
+                                returnTypeText = resolveGenericParameterType(returnTypeText, typeMap, (PsiTypeParameter) returnClass);
+                            }
+                        } else if (returnType instanceof PsiWildcardType) {
+                            // 处理通配符类型如 ? extends T
+                            PsiType boundType = ((PsiWildcardType) returnType).getBound();
+                            if (boundType != null) {
+                                String boundText = boundType.getCanonicalText();
+                                // 检查边界类型是否是类型参数
+                                if (!boundText.contains(".") && !boundText.contains("<")) {
+                                    String resolvedBound = resolveGenericParameterType(boundText, typeMap, null);
+                                    if (!boundText.equals(resolvedBound)) {
+                                        returnTypeText = ((PsiWildcardType) returnType).isExtends() 
+                                            ? "? extends " + resolvedBound 
+                                            : "? super " + resolvedBound;
+                                    }
+                                }
+                            }
+                        } else {
+                            // 处理其他简单类型参数如 T
+                            returnTypeText = resolveGenericParameterType(returnTypeText, typeMap, null);
+                        }
+                    }
+                }
             }
             
             builder.append(returnTypeText).append(" ")

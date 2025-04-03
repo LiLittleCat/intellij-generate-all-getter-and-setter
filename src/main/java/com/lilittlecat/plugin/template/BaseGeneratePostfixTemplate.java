@@ -120,6 +120,44 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
     }
     
     /**
+     * 处理直接返回泛型参数的情况，例如方法返回类型为T、E等
+     * 
+     * @param typeText 类型文本，可能是泛型参数如"T"
+     * @param typeMap 泛型映射表
+     * @param psiTypeParameter 可能的类型参数定义
+     * @return 解析后的实际类型
+     */
+    protected String resolveGenericParameterType(String typeText, Map<String, String> typeMap, PsiTypeParameter psiTypeParameter) {
+        if (typeText == null || typeMap == null || typeMap.isEmpty()) {
+            return typeText;
+        }
+        
+        // 如果类型文本包含点号或尖括号，说明不是简单的类型参数
+        if (typeText.contains(".") || typeText.contains("<") || typeText.contains(">")) {
+            return typeText;
+        }
+        
+        // 检查是否是类型变量（泛型参数）
+        String actualType = null;
+        
+        // 首先直接从映射表中查找
+        actualType = typeMap.get(typeText);
+        
+        // 如果没有找到且提供了PsiTypeParameter，尝试使用参数名查找
+        if (actualType == null && psiTypeParameter != null) {
+            actualType = typeMap.get(psiTypeParameter.getName());
+        }
+        
+        // 如果找到了实际类型，返回它
+        if (actualType != null) {
+            return actualType;
+        }
+        
+        // 没有找到对应的实际类型，返回原始类型
+        return typeText;
+    }
+    
+    /**
      * 检查是否应该保留泛型信息
      * 当使用原始类型时（没有指定具体泛型参数），返回不带泛型的类型
      * 

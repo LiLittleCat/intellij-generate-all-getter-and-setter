@@ -49,6 +49,40 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
             // parameters of setter method.
             PsiParameter parameter = setterMethod.getParameterList().getParameters()[0];
             PsiType parameterType = parameter.getType();
+            
+            // 首先检查参数是否直接是类型参数(如C, T等)
+            if (hasGenericType) {
+                if (parameterType instanceof PsiClassType) {
+                    PsiClass paramClass = ((PsiClassType) parameterType).resolve();
+                    if (paramClass instanceof PsiTypeParameter) {
+                        Map<String, String> typeMap = genericTypeMap.get(((PsiExpression) expression).getType().getCanonicalText().split("<")[0]);
+                        if (typeMap != null && !typeMap.isEmpty()) {
+                            String resolvedType = resolveGenericParameterType(parameterType.getCanonicalText(), typeMap, (PsiTypeParameter) paramClass);
+                            if (!resolvedType.equals(parameterType.getCanonicalText())) {
+                                // 如果解析出了具体类型，尝试使用该类型创建默认值
+                                if (!resolvedType.contains(".")) {
+                                    // 简单类型，如Integer、String等
+                                    defaultValue = createBasicTypeDefaultValue(resolvedType);
+                                } else {
+                                    // 查找是否有预定义的默认值
+                                    String staticDefaultValue = DEFAULT_VALUE_MAP.get(resolvedType);
+                                    if (isNotBlank(staticDefaultValue)) {
+                                        defaultValue = staticDefaultValue;
+                                    } else {
+                                        // 复杂类型，尝试创建实例
+                                        defaultValue = "new " + getClassName(resolvedType) + "()";
+                                        newImportSet.add(resolvedType);
+                                    }
+                                }
+                                builder.append(expression.getText()).append(".").append(setterMethod.getName())
+                                    .append("(").append(defaultValue).append(");\n");
+                                continue;
+                            }
+                        }
+                    }
+                }
+            }
+            
             if (parameterType instanceof PsiArrayType) {
                 // parameter type is array type.
                 String text = parameterType.getCanonicalText();
@@ -264,5 +298,36 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
         
         // 默认返回null，使用原有的默认值生成逻辑
         return null;
+    }
+
+    /**
+     * 为基本类型创建默认值
+     * 
+     * @param typeName 类型名称
+     * @return 默认值
+     */
+    private String createBasicTypeDefaultValue(String typeName) {
+        switch (typeName) {
+            case "Integer":
+                return "0";
+            case "Long":
+                return "0L";
+            case "Double":
+                return "0.0";
+            case "Float":
+                return "0.0f";
+            case "Boolean":
+                return "false";
+            case "String":
+                return "\"\"";
+            case "Character":
+                return "'\\u0000'";
+            case "Byte":
+                return "(byte) 0";
+            case "Short":
+                return "(short) 0";
+            default:
+                return "null";
+        }
     }
 }
