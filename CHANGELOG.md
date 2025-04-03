@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### Fixed
+- Fixed proper handling of generic types in `.allget`, `.allset`, and `.allsetv` [#30](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues/30)
+- Fixed StringIndexOutOfBoundsException when class has method named `set()` or `get()` [#35](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues/35)
+- Improved detection of class type parameters vs regular generic types
+- Added better warning messages for raw generic types
+
 ## [1.0.10] - 2023-04-04
 
 ### Added
