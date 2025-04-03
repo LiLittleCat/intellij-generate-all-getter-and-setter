@@ -4,10 +4,12 @@ import com.intellij.codeInsight.template.Template;
 import com.intellij.codeInsight.template.postfix.templates.PostfixTemplateProvider;
 import com.intellij.openapi.editor.Document;
 import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTypesUtil;
 import com.lilittlecat.plugin.util.PsiClassUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.lilittlecat.plugin.common.Constants.*;
@@ -46,7 +48,19 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
                 continue;
             }
             String methodName = method.getName();
-            builder.append(returnType.getCanonicalText()).append(" ")
+            
+            // 处理泛型类型
+            String returnTypeText = returnType.getCanonicalText();
+            // 检查是否有泛型参数需要替换
+            if (hasGenericType && returnTypeText.contains("<")) {
+                Map<String, String> typeMap = genericTypeMap.get(((PsiExpression) expression).getType().getCanonicalText().split("<")[0]);
+                if (typeMap != null && !typeMap.isEmpty()) {
+                    // 使用新方法解析嵌套泛型
+                    returnTypeText = resolveNestedGenericType(returnTypeText, typeMap);
+                }
+            }
+            
+            builder.append(returnTypeText).append(" ")
                     .append(getFieldNameInMethod(method, GET_METHOD_TYPE))
                     .append(" = ").append(expression.getText()).append(".").append(methodName).append("();\n");
         }

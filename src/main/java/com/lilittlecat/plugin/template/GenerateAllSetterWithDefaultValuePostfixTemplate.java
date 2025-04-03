@@ -12,7 +12,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.lilittlecat.plugin.common.Constants.*;
@@ -81,6 +84,25 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                     // parameter type is generic
                     String fieldType = text.substring(0, i);
                     newImportSet.add(getRealImport(fieldType));
+                    
+                    // 如果是泛型且已收集了泛型类型信息，使用收集到的实际类型
+                    if (hasGenericType && text.contains("<")) {
+                        Map<String, String> typeMap = genericTypeMap.get(((PsiExpression) expression).getType().getCanonicalText().split("<")[0]);
+                        if (typeMap != null && !typeMap.isEmpty()) {
+                            // 使用新方法解析嵌套泛型
+                            String resolvedGenericText = resolveNestedGenericType(text, typeMap);
+                            // 从嵌套泛型中提取实际类型参数
+                            Matcher genericMatcher = genericTypePattern.matcher(resolvedGenericText);
+                            if (genericMatcher.find()) {
+                                String actualTypeParam = genericMatcher.group(1);
+                                // 根据类型创建合适的默认值
+                                String genericDefaultValue = createGenericDefaultValue(fieldType, actualTypeParam);
+                                if (genericDefaultValue != null) {
+                                    defaultValue = genericDefaultValue;
+                                }
+                            }
+                        }
+                    }
                 }
                 if (parameterClass.isEnum()) {
                     // field is enum
@@ -205,5 +227,32 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
             return qualifiedName;
         }
         return qualifiedName.substring(i + 1);
+    }
+
+    /**
+     * 为泛型类型创建包含实际类型的默认值
+     * 
+     * @param containerType 容器类型 (如 java.util.List)
+     * @param genericType 泛型类型 (如 Animal)
+     * @return 适合该泛型类型的默认值
+     */
+    private String createGenericDefaultValue(String containerType, String genericType) {
+        if (containerType == null || genericType == null) {
+            return null;
+        }
+        
+        if (containerType.contains("List") || containerType.contains("ArrayList")) {
+            // 对于List类型
+            return "new ArrayList<" + getClassName(genericType) + ">()";
+        } else if (containerType.contains("Set") || containerType.contains("HashSet")) {
+            // 对于Set类型
+            return "new HashSet<" + getClassName(genericType) + ">()";
+        } else if (containerType.contains("Map") || containerType.contains("HashMap")) {
+            // 对于Map类型
+            return "new HashMap<>()";
+        }
+        
+        // 默认返回null，使用原有的默认值生成逻辑
+        return null;
     }
 }

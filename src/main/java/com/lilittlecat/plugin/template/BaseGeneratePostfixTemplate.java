@@ -45,10 +45,11 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
                 if (type == null) {
                     return false;
                 }
-                // type.getCanonicalText()
                 String className = type.getCanonicalText();
+                int genericIndex = className.indexOf("<");
+                String baseClassName = genericIndex > 0 ? className.substring(0, genericIndex) : className;
                 PsiClass psiClass = JavaPsiFacade.getInstance(project)
-                        .findClass(className.substring(0, className.indexOf("<")), psiElement.getResolveScope());
+                        .findClass(baseClassName, psiElement.getResolveScope());
                 return psiClass != null;
             };
 
@@ -62,11 +63,61 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
         return false;
     }
 
-    public static final Pattern genericTypePattern = Pattern.compile("<(.*?)>");
+    /**
+     * 识别泛型参数的正则表达式，支持任意标识符
+     */
+    public static final Pattern genericTypePattern = Pattern.compile("<([^<>]+)>");
 
     protected Boolean hasGenericType = false;
 
     public static final Map<String, Map<String, String>> genericTypeMap = new HashMap<>();
+
+    /**
+     * 解析泛型类型字符串，处理嵌套泛型情况
+     * 例如从 List<T> 中提取出 T，即使 T 来自于外层类定义
+     * 
+     * @param genericText 包含泛型的类型字符串，如 "List<T>"
+     * @param typeMap 当前类的泛型映射表
+     * @return 处理后的泛型类型字符串，如 "List<String>"
+     */
+    protected String resolveNestedGenericType(String genericText, Map<String, String> typeMap) {
+        if (genericText == null || typeMap == null || typeMap.isEmpty()) {
+            return genericText;
+        }
+        
+        // 使用正则表达式查找所有泛型参数
+        Matcher matcher = Pattern.compile("<([^<>]+)>").matcher(genericText);
+        if (matcher.find()) {
+            String genericParams = matcher.group(1);
+            // 分割多个泛型参数（例如Map<K,V>）
+            String[] params = genericParams.split(",");
+            for (int i = 0; i < params.length; i++) {
+                String param = params[i].trim();
+                // 检查是否是TypeVariable（简单标识符，没有点号和尖括号）
+                if (!param.contains(".") && !param.contains("<") && !param.contains(">")) {
+                    // 在类型映射中查找替换
+                    String actualType = typeMap.get(param);
+                    if (actualType != null) {
+                        params[i] = actualType;
+                    }
+                }
+            }
+            
+            // 重新构建泛型类型字符串
+            String typeWithoutGeneric = genericText.substring(0, genericText.indexOf("<"));
+            StringBuilder newGeneric = new StringBuilder(typeWithoutGeneric).append("<");
+            for (int i = 0; i < params.length; i++) {
+                if (i > 0) {
+                    newGeneric.append(", ");
+                }
+                newGeneric.append(params[i]);
+            }
+            newGeneric.append(">");
+            return newGeneric.toString();
+        }
+        
+        return genericText;
+    }
 
     protected void clearState() {
         hasGenericType = false;
