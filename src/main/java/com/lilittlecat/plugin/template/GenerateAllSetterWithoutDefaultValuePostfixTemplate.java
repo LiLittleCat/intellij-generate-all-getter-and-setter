@@ -48,14 +48,20 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                     PsiType paramType = parameter.getType();
                     String paramTypeText = paramType.getCanonicalText();
                     
+                    // 只处理包含泛型的参数类型
                     if (paramTypeText.contains("<")) {
                         // 处理泛型参数
                         Map<String, String> typeMap = genericTypeMap.get(((PsiExpression) expression).getType().getCanonicalText().split("<")[0]);
                         if (typeMap != null && !typeMap.isEmpty()) {
-                            // 使用新方法解析嵌套泛型
-                            String resolvedGenericText = resolveNestedGenericType(paramTypeText, typeMap);
-                            // 添加带解析后泛型类型的变量备注
-                            variableList.add(fieldName + " // Type: " + resolvedGenericText);
+                            // 首先检查是否是原始类型
+                            String resolvedType = handleRawType(paramTypeText, typeMap);
+                            // 如果仍然包含泛型标记，则保留类型信息
+                            if (resolvedType.contains("<")) {
+                                variableList.add(fieldName + " // Type: " + resolvedType);
+                            } else {
+                                // 原始类型，不添加泛型信息
+                                variableList.add(fieldName);
+                            }
                             builder.append(expression.getText()).append(".").append(setterMethod.getName())
                                 .append("($").append(fieldName).append("$);\n");
                             continue;

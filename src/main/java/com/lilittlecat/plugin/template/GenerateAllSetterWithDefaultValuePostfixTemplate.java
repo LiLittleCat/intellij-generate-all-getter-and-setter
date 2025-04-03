@@ -85,20 +85,30 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                     String fieldType = text.substring(0, i);
                     newImportSet.add(getRealImport(fieldType));
                     
-                    // 如果是泛型且已收集了泛型类型信息，使用收集到的实际类型
+                    // 只有当类定义中包含泛型参数时才进行处理
                     if (hasGenericType && text.contains("<")) {
                         Map<String, String> typeMap = genericTypeMap.get(((PsiExpression) expression).getType().getCanonicalText().split("<")[0]);
                         if (typeMap != null && !typeMap.isEmpty()) {
-                            // 使用新方法解析嵌套泛型
-                            String resolvedGenericText = resolveNestedGenericType(text, typeMap);
-                            // 从嵌套泛型中提取实际类型参数
-                            Matcher genericMatcher = genericTypePattern.matcher(resolvedGenericText);
-                            if (genericMatcher.find()) {
-                                String actualTypeParam = genericMatcher.group(1);
-                                // 根据类型创建合适的默认值
-                                String genericDefaultValue = createGenericDefaultValue(fieldType, actualTypeParam);
-                                if (genericDefaultValue != null) {
-                                    defaultValue = genericDefaultValue;
+                            // 首先检查是否是原始类型
+                            String resolvedType = handleRawType(text, typeMap);
+                            // 如果处理后类型中不包含泛型，则使用基本的默认值
+                            if (!resolvedType.contains("<")) {
+                                String staticDefaultValue = DEFAULT_VALUE_MAP.get(fieldType);
+                                if (isNotBlank(staticDefaultValue)) {
+                                    defaultValue = staticDefaultValue;
+                                } else {
+                                    defaultValue = "new " + getClassName(fieldType) + "()";
+                                }
+                            } else {
+                                // 从嵌套泛型中提取实际类型参数
+                                Matcher genericMatcher = genericTypePattern.matcher(resolvedType);
+                                if (genericMatcher.find()) {
+                                    String actualTypeParam = genericMatcher.group(1);
+                                    // 根据类型创建合适的默认值
+                                    String genericDefaultValue = createGenericDefaultValue(fieldType, actualTypeParam);
+                                    if (genericDefaultValue != null) {
+                                        defaultValue = genericDefaultValue;
+                                    }
                                 }
                             }
                         }

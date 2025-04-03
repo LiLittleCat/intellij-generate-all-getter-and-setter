@@ -118,6 +118,61 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
         
         return genericText;
     }
+    
+    /**
+     * 检查是否应该保留泛型信息
+     * 当使用原始类型时（没有指定具体泛型参数），返回不带泛型的类型
+     * 
+     * @param genericText 可能包含泛型的类型字符串
+     * @param typeMap 泛型映射表
+     * @return 处理后的类型字符串
+     */
+    protected String handleRawType(String genericText, Map<String, String> typeMap) {
+        if (genericText == null) {
+            return null;
+        }
+        
+        // 如果没有泛型，直接返回原文本
+        if (!genericText.contains("<")) {
+            return genericText;
+        }
+        
+        // 在泛型映射为空的情况下，如果有泛型，则认为是使用了原始类型，返回无泛型版本
+        if (typeMap == null || typeMap.isEmpty()) {
+            return genericText.substring(0, genericText.indexOf("<"));
+        }
+        
+        // 处理泛型类型
+        String resolvedType = resolveNestedGenericType(genericText, typeMap);
+        
+        // 检查解析后的类型是否包含未解析的类型变量
+        Matcher matcher = Pattern.compile("<([^<>]+)>").matcher(resolvedType);
+        if (matcher.find()) {
+            String genericParams = matcher.group(1);
+            String[] params = genericParams.split(",");
+            for (String param : params) {
+                param = param.trim();
+                // 如果参数是类型变量（简单标识符，没有点号和尖括号）并且没有在typeMap中找到对应值
+                if (!param.contains(".") && !param.contains("<") && !param.contains(">")) {
+                    // 检查是否是没有被替换的类型变量
+                    boolean foundInMap = false;
+                    for (Map.Entry<String, String> entry : typeMap.entrySet()) {
+                        if (param.equals(entry.getKey()) || param.equals(entry.getValue())) {
+                            foundInMap = true;
+                            break;
+                        }
+                    }
+                    
+                    // 如果是未替换的类型变量，则认为是使用了原始类型
+                    if (!foundInMap) {
+                        return resolvedType.substring(0, resolvedType.indexOf("<"));
+                    }
+                }
+            }
+        }
+        
+        return resolvedType;
+    }
 
     protected void clearState() {
         hasGenericType = false;
@@ -145,17 +200,24 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
         List<String> genericTypeClassNameList = new ArrayList<>();
         Pattern pattern = Pattern.compile("^[^<]*<(.*)>");
         Matcher matcher = pattern.matcher(className);
+        
+        // 从类名中提取基础类名（不带泛型）
+        String baseClassName = className;
         if (matcher.find()) {
-            hasGenericType = true;
-            // Has generic types
+            // Has generic types specified in the instance
             String typeArgs = matcher.group(1);
             for (String name : typeArgs.split(",")) {
                 genericTypeClassNameList.add(name.trim());
             }
-            className = className.substring(0, className.indexOf("<"));
+            baseClassName = className.substring(0, className.indexOf("<"));
         }
-        PsiClass psiClass = JavaPsiFacade.getInstance(expression.getProject()).findClass(className, expression.getResolveScope());
+        
+        PsiClass psiClass = JavaPsiFacade.getInstance(expression.getProject()).findClass(baseClassName, expression.getResolveScope());
         assert psiClass != null;
+        
+        // 检查类定义是否包含泛型参数，无论实例化时是否指定了具体泛型
+        hasGenericType = psiClass.getTypeParameters().length > 0;
+        
         // Gets the generic placeholder in the class
         PsiTypeParameter[] typeParameters = psiClass.getTypeParameters();
         if (!genericTypeClassNameList.isEmpty() && typeParameters.length == genericTypeClassNameList.size()) {

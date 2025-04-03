@@ -51,13 +51,11 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
             
             // 处理泛型类型
             String returnTypeText = returnType.getCanonicalText();
-            // 检查是否有泛型参数需要替换
+            // 只有当类定义中包含泛型参数时才进行处理
             if (hasGenericType && returnTypeText.contains("<")) {
                 Map<String, String> typeMap = genericTypeMap.get(((PsiExpression) expression).getType().getCanonicalText().split("<")[0]);
-                if (typeMap != null && !typeMap.isEmpty()) {
-                    // 使用新方法解析嵌套泛型
-                    returnTypeText = resolveNestedGenericType(returnTypeText, typeMap);
-                }
+                // 使用handleRawType方法处理，如果是原始类型则去除泛型部分
+                returnTypeText = handleRawType(returnTypeText, typeMap);
             }
             
             builder.append(returnTypeText).append(" ")
