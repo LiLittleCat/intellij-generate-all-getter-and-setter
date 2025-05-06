@@ -39,6 +39,14 @@
             <img src="https://cdn.jsdelivr.net/gh/LiLittleCat/intellij-generate-all-getter-and-setter@main/example/generate-all-setter-with-default-value.gif"
                 alt="allsetv" width="500" height="500"/>
         </li>
+        <li>
+            <p>Use <kbd>.allsetc</kbd> to generate all setter methods with chain style for POJO.</p>
+            <p>使用 <kbd>.allsetc</kbd> 生成所有链式调用的 setter 方法。</p>
+        </li>
+        <li>
+            <p>Use <kbd>.allsetcv</kbd> to generate all setter methods with default value and chain style for POJO.</p>
+            <p>使用 <kbd>.allsetcv</kbd> 生成所有带默认值的链式调用 setter 方法。</p>
+        </li>
     </ul>
 ]]>
     </description>

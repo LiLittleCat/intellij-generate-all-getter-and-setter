@@ -8,6 +8,8 @@ import com.intellij.util.containers.ContainerUtil;
 import com.lilittlecat.plugin.template.GenerateAllGetterPostfixTemplate;
 import com.lilittlecat.plugin.template.GenerateAllSetterWithoutDefaultValuePostfixTemplate;
 import com.lilittlecat.plugin.template.GenerateAllSetterWithDefaultValuePostfixTemplate;
+import com.lilittlecat.plugin.template.GenerateAllSetterChainWithoutDefaultValuePostfixTemplate;
+import com.lilittlecat.plugin.template.GenerateAllSetterChainWithDefaultValuePostfixTemplate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -22,7 +24,9 @@ public class GenerateAllGetterAndSetterPostfixTemplateProvider implements Postfi
     private final HashSet<PostfixTemplate> templates = ContainerUtil.newHashSet(
             new GenerateAllGetterPostfixTemplate(this),
             new GenerateAllSetterWithoutDefaultValuePostfixTemplate(this),
-            new GenerateAllSetterWithDefaultValuePostfixTemplate(this)
+            new GenerateAllSetterWithDefaultValuePostfixTemplate(this),
+            new GenerateAllSetterChainWithoutDefaultValuePostfixTemplate(this),
+            new GenerateAllSetterChainWithDefaultValuePostfixTemplate(this)
     );
 
     @Override
