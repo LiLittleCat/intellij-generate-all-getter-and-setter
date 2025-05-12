@@ -2,15 +2,13 @@
 
 # Generate All Getter And Setter
 
-[中文文档](README_zh.md)
+[English](README.md)
 
 ![Build](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/workflows/Build/badge.svg)
 [![Version](https://img.shields.io/jetbrains/plugin/v/18969-generate-all-getter-and-setter.svg)](https://plugins.jetbrains.com/plugin/18969-generate-all-getter-and-setter)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/18969-generate-all-getter-and-setter.svg)](https://plugins.jetbrains.com/plugin/18969-generate-all-getter-and-setter)
 
-Generate All Getter And Setter is an IntelliJ IDEA plugin that generates all getter and setter methods for POJO
-use [postfix completion](https://www.jetbrains.com/help/idea/settings-postfix-completion.html) like
-<kbd>.var</kbd>.
+Generate All Getter And Setter 是一个 IntelliJ IDEA 插件，可以通过 [后缀补全](https://www.jetbrains.com/help/idea/settings-postfix-completion.html)（类似于 <kbd>.var</kbd>）为 POJO 类生成所有的 getter 和 setter 方法。
 
 [comment]: <> (<!-- Plugin description -->)
 
@@ -18,54 +16,52 @@ use [postfix completion](https://www.jetbrains.com/help/idea/settings-postfix-co
 
 [comment]: <> (This specific section is a source for the [plugin.xml]&#40;/src/main/resources/META-INF/plugin.xml&#41; file which will be extracted by the [Gradle]&#40;/build.gradle.kts&#41; during the build process.)
 
-[comment]: <> (To keep everything working, do not remove `<!-- ... -->` sections. )
+[comment]: <> (To keep everything working, do not remove `<!-- ... -->` sections.)
 
 [comment]: <> (<!-- Plugin description end -->)
 
-## Installation
+## 安装方法
 
-- Using IDE built-in plugin system:
+- 使用 IDE 内置的插件系统安装：
 
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Marketplace</kbd> > <kbd>Search for "Generate All Getter And Setter"</kbd> >
-  <kbd>Install Plugin</kbd>
+  <kbd> 设置 / 首选项 </kbd> > <kbd> 插件 </kbd> > <kbd> 市场 </kbd> > <kbd> 搜索 "Generate All Getter And Setter"</kbd> >
+  <kbd> 安装插件 </kbd>
 
-- Manually:
+- 手动安装：
 
-  Download the [latest release](https://plugins.jetbrains.com/plugin/18969-generate-all-getter-and-setter/versions)
-  and install it manually using
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
+  下载 [最新版本](https://plugins.jetbrains.com/plugin/18969-generate-all-getter-and-setter/versions)
+  并手动安装：
+  <kbd> 设置 / 首选项 </kbd> > <kbd> 插件 </kbd> > <kbd>⚙️</kbd> > <kbd> 从磁盘安装插件...</kbd>
 
-## Usage
+## 使用方法
 
-- Use <kbd>.allget</kbd> to generate all getter methods for POJO.
+- 使用 <kbd>.allget</kbd> 生成所有的 getter 方法。
 
 ![example-allget](example/generate-all-getter.gif)
 
-- Use <kbd>.allset</kbd> to generate all setter methods without default value for POJO.
+- 使用 <kbd>.allset</kbd> 生成所有不带默认值的 setter 方法。
 
 ![example-allset](example/generate-all-setter-without-default-value.gif)
 
-- Use <kbd>.allsetv</kbd> to generate all setter methods with default value for POJO.
+- 使用 <kbd>.allsetv</kbd> 生成所有带默认值的 setter 方法。
 
 ![example-allsetv](example/generate-all-setter-with-default-value.gif)
 
-- Use <kbd>.allsetc</kbd> to generate all setter methods with chain style for POJO.
+- 使用 <kbd>.allsetc</kbd> 生成所有链式风格的 setter 方法。
 
 ![example-allsetc](example/generate-all-setter-with-chain-style.gif)
 
-- Use <kbd>.allsetcv</kbd> to generate all setter methods with default value and chain style for POJO.
+- 使用 <kbd>.allsetcv</kbd> 生成所有带默认值的链式风格 setter 方法。
 
 ![example-allsetcv](example/generate-all-setter-with-default-value-and-chain-style.gif)
 
-## Special Thanks
+## 特别感谢
 
-- Thanks [XiaoYao][XiaoYao's link] for helping design the plugin icon.
+- 感谢 [XiaoYao][XiaoYao's link] 帮助设计插件图标。
 - [IntelliJ Platform Plugin Template][template].
 
 ---
 
 [XiaoYao's link]: https://space.bilibili.com/15765234
 [JetBrains's link]: https://jb.gg/OpenSourceSupport
-[template]: https://github.com/JetBrains/intellij-platform-plugin-template
-
-
+[template]: https://github.com/JetBrains/intellij-platform-plugin-template 

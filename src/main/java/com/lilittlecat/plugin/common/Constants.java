@@ -14,9 +14,13 @@ public class Constants {
     public static final String ALL_GETTER_SUFFIX = "allget";
     public static final String ALL_SETTER_SUFFIX = "allset";
     public static final String ALL_SETTER_WITH_DEFAULT_VALUE_SUFFIX = "allsetv";
+    public static final String ALL_SETTER_CHAIN_SUFFIX = "allsetc";
+    public static final String ALL_SETTER_CHAIN_WITH_DEFAULT_VALUE_SUFFIX = "allsetcv";
     public static final String ALL_GETTER_INFO = "Generate all getter()";
     public static final String ALL_SETTER_INFO = "Generate all setter()";
     public static final String ALL_SETTER_WITH_DEFAULT_VALUE_INFO = "Generate all setter() with default value";
+    public static final String ALL_SETTER_CHAIN_INFO = "Generate all setter() with chain style";
+    public static final String ALL_SETTER_CHAIN_WITH_DEFAULT_VALUE_INFO = "Generate all setter() with default value and chain style";
     public static final String GET = "get";
     public static final String IS = "is";
     public static final String SET = "set";
