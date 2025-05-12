@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.0.12] - 2025-05-12
+
 ### Added
 - Added support for generating setter methods with chain style using `.allsetc` and with default value and chain style using `.allsetcv` [#38](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues/38)
 - Added automatic code formatting after using `.allget`, `.allset`, `.allsetv`, `.allsetc`, and `.allsetcv`
@@ -78,7 +80,8 @@
 ### Added
 - Postfix completion: <kbd>.allget</kbd>, <kbd>.allset</kbd>, <kbd>.allsetv</kbd>.
 
-[Unreleased]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.11...HEAD
+[Unreleased]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.12...HEAD
+[1.0.12]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.11...v1.0.12
 [1.0.11]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.10...v1.0.11
 [1.0.10]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.9...v1.0.10
 [1.0.9]: https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/compare/v1.0.8...v1.0.9
