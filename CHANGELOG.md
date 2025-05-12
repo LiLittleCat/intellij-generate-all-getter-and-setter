@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### Added
+- Added support for generating setter methods with chain style using `.allsetc` and with default value and chain style using `.allsetcv` [#38](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues/38)
+- Added automatic code formatting after using `.allget`, `.allset`, `.allsetv`, `.allsetc`, and `.allsetcv`
+
+### 新增
+- setter 链式调用 `.allsetc`, 带默认值的链式调用 `.allsetcv` [#38](https://github.com/LiLittleCat/intellij-generate-all-getter-and-setter/issues/38)
+- 使用功能后自动格式化代码
+
 ## [1.0.11] - 2025-04-03
 
 ### Fixed
@@ -49,7 +57,7 @@
 ## [1.0.3]
 
 ### Added
-- Support get and set parent classes‘ fields.
+- Support get and set parent classes' fields.
 - Support .allsetv for enum type fields.
 
 ### Fixed
