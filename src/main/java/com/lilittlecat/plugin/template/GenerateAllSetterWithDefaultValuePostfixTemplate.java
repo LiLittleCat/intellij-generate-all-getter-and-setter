@@ -40,7 +40,7 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
      * new import set
      */
     Set<String> newImportSet = new HashSet<>();
-    
+
     /**
      * 标记模板是否只包含注释
      */
@@ -55,6 +55,15 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
         String defaultValue = "";
         // 初始化标记
         hasOnlyComments = true;
+
+        if (methods.isEmpty()) {
+            String className = getSimpleClassName(expression);
+
+            builder.append("// No setter methods found in `").append(className)
+                   .append("` class for ").append(expression.getText()).append("\n");
+            builder.append("$END$");
+            return builder.toString();
+        }
         for (PsiMethod setterMethod : methods) {
             // 检查是否是set()方法（没有对应字段名）
             String fieldName = getFieldNameInMethod(setterMethod, SET_METHOD_TYPE);
@@ -62,11 +71,11 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                 // 如果字段名是特殊标记，跳过此方法
                 continue;
             }
-            
+
             // parameters of setter method.
             PsiParameter parameter = setterMethod.getParameterList().getParameters()[0];
             PsiType parameterType = parameter.getType();
-            
+
             // 首先检查参数是否直接是类型参数(如C, T等)
             if (hasGenericType) {
                 if (parameterType instanceof PsiClassType) {
@@ -112,7 +121,7 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                     }
                 }
             }
-            
+
             if (parameterType instanceof PsiArrayType) {
                 // parameter type is array type.
                 String text = parameterType.getCanonicalText();
@@ -148,14 +157,14 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                     // parameter type is generic
                     String fieldType = text.substring(0, i);
                     newImportSet.add(getRealImport(fieldType));
-                    
+
                     // 只有当类定义中包含泛型参数时才进行处理
                     if (hasGenericType && text.contains("<")) {
                         Map<String, String> typeMap = genericTypeMap.get(((PsiExpression) expression).getType().getCanonicalText().split("<")[0]);
                         if (typeMap != null && !typeMap.isEmpty()) {
                             // 首先检查类型中是否包含了类定义的泛型参数
                             boolean containsClassTypeParameter = false;
-                            
+
                             // 获取类的所有类型参数名称
                             Set<String> classTypeParamNames = new HashSet<>();
                             if (expression instanceof PsiExpression) {
@@ -170,10 +179,10 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                                     }
                                 }
                             }
-                            
+
                             // 检查参数类型是否使用了类的泛型参数
                             for (String paramName : classTypeParamNames) {
-                                if (text.contains("<" + paramName + ">") || 
+                                if (text.contains("<" + paramName + ">") ||
                                     text.contains("<" + paramName + ",") ||
                                     text.contains(", " + paramName + ">") ||
                                     text.contains(", " + paramName + ",")) {
@@ -181,12 +190,12 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                                     break;
                                 }
                             }
-                            
+
                             // 只处理包含类型参数的泛型
                             if (containsClassTypeParameter) {
                                 // 首先检查是否是原始类型
                                 String resolvedType = handleRawType(text, typeMap);
-                                
+
                                 // 检查解析后的类型是否仍包含未解析的泛型参数
                                 boolean containsUnresolvedTypeVar = false;
                                 if (resolvedType.contains("<")) {
@@ -199,7 +208,7 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                                                                      .anyMatch(s -> !s.contains(".") && classTypeParamNames.contains(s));
                                     }
                                 }
-                                
+
                                 if (containsUnresolvedTypeVar) {
                                     // 泛型参数未完全具体化，添加注释
                                     builder.append("// Generic type in ").append(text)
@@ -207,7 +216,7 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                                            .append(expression.getText()).append(".\n");
                                     continue;
                                 }
-                                
+
                                 // 如果处理后类型中不包含泛型，则使用基本的默认值
                                 if (!resolvedType.contains("<")) {
                                     String staticDefaultValue = DEFAULT_VALUE_MAP.get(fieldType);
@@ -241,7 +250,7 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                         } else if (typeMap == null || typeMap.isEmpty()) {
                             // 检查类型中是否包含了类定义的泛型参数
                             boolean containsClassTypeParameter = false;
-                            
+
                             // 获取类的所有类型参数名称
                             Set<String> classTypeParamNames = new HashSet<>();
                             if (expression instanceof PsiExpression) {
@@ -256,10 +265,10 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                                     }
                                 }
                             }
-                            
+
                             // 检查参数类型是否使用了类的泛型参数
                             for (String paramName : classTypeParamNames) {
-                                if (text.contains("<" + paramName + ">") || 
+                                if (text.contains("<" + paramName + ">") ||
                                     text.contains("<" + paramName + ",") ||
                                     text.contains(", " + paramName + ">") ||
                                     text.contains(", " + paramName + ",")) {
@@ -267,7 +276,7 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
                                     break;
                                 }
                             }
-                            
+
                             if (containsClassTypeParameter) {
                                 // 未提供泛型类型信息，添加注释
                                 builder.append("// Cannot resolve generic types in ").append(text)
@@ -419,7 +428,7 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
 
     /**
      * 为泛型类型创建包含实际类型的默认值
-     * 
+     *
      * @param containerType 容器类型 (如 java.util.List)
      * @param genericType 泛型类型 (如 Animal)
      * @return 适合该泛型类型的默认值
@@ -428,7 +437,7 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
         if (containerType == null || genericType == null) {
             return null;
         }
-        
+
         if (containerType.contains("List") || containerType.contains("ArrayList")) {
             // 对于List类型
             return "new ArrayList<" + getClassName(genericType) + ">()";
@@ -439,14 +448,14 @@ public class GenerateAllSetterWithDefaultValuePostfixTemplate extends BaseGenera
             // 对于Map类型
             return "new HashMap<>()";
         }
-        
+
         // 默认返回null，使用原有的默认值生成逻辑
         return null;
     }
 
     /**
      * 为基本类型创建默认值
-     * 
+     *
      * @param typeName 类型名称
      * @return 默认值
      */

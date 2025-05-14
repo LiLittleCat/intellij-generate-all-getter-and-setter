@@ -75,7 +75,7 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
     /**
      * 解析泛型类型字符串，处理嵌套泛型情况
      * 例如从 List<T> 中提取出 T，即使 T 来自于外层类定义
-     * 
+     *
      * @param genericText 包含泛型的类型字符串，如 "List<T>"
      * @param typeMap 当前类的泛型映射表
      * @return 处理后的泛型类型字符串，如 "List<String>"
@@ -84,7 +84,7 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
         if (genericText == null || typeMap == null || typeMap.isEmpty()) {
             return genericText;
         }
-        
+
         // 使用正则表达式查找所有泛型参数
         Matcher matcher = Pattern.compile("<([^<>]+)>").matcher(genericText);
         if (matcher.find()) {
@@ -102,7 +102,7 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
                     }
                 }
             }
-            
+
             // 重新构建泛型类型字符串
             String typeWithoutGeneric = genericText.substring(0, genericText.indexOf("<"));
             StringBuilder newGeneric = new StringBuilder(typeWithoutGeneric).append("<");
@@ -115,13 +115,13 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
             newGeneric.append(">");
             return newGeneric.toString();
         }
-        
+
         return genericText;
     }
-    
+
     /**
      * 处理直接返回泛型参数的情况，例如方法返回类型为T、E等
-     * 
+     *
      * @param typeText 类型文本，可能是泛型参数如"T"
      * @param typeMap 泛型映射表
      * @param psiTypeParameter 可能的类型参数定义
@@ -131,36 +131,36 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
         if (typeText == null || typeMap == null || typeMap.isEmpty()) {
             return typeText;
         }
-        
+
         // 如果类型文本包含点号或尖括号，说明不是简单的类型参数
         if (typeText.contains(".") || typeText.contains("<") || typeText.contains(">")) {
             return typeText;
         }
-        
+
         // 检查是否是类型变量（泛型参数）
         String actualType = null;
-        
+
         // 首先直接从映射表中查找
         actualType = typeMap.get(typeText);
-        
+
         // 如果没有找到且提供了PsiTypeParameter，尝试使用参数名查找
         if (actualType == null && psiTypeParameter != null) {
             actualType = typeMap.get(psiTypeParameter.getName());
         }
-        
+
         // 如果找到了实际类型，返回它
         if (actualType != null) {
             return actualType;
         }
-        
+
         // 没有找到对应的实际类型，返回原始类型
         return typeText;
     }
-    
+
     /**
      * 检查是否应该保留泛型信息
      * 当使用原始类型时（没有指定具体泛型参数），返回不带泛型的类型
-     * 
+     *
      * @param genericText 可能包含泛型的类型字符串
      * @param typeMap 泛型映射表
      * @return 处理后的类型字符串
@@ -169,20 +169,20 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
         if (genericText == null) {
             return null;
         }
-        
+
         // 如果没有泛型，直接返回原文本
         if (!genericText.contains("<")) {
             return genericText;
         }
-        
+
         // 在泛型映射为空的情况下，如果有泛型，则认为是使用了原始类型，返回无泛型版本
         if (typeMap == null || typeMap.isEmpty()) {
             return genericText.substring(0, genericText.indexOf("<"));
         }
-        
+
         // 处理泛型类型
         String resolvedType = resolveNestedGenericType(genericText, typeMap);
-        
+
         // 检查解析后的类型是否包含未解析的类型变量
         Matcher matcher = Pattern.compile("<([^<>]+)>").matcher(resolvedType);
         if (matcher.find()) {
@@ -200,7 +200,7 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
                             break;
                         }
                     }
-                    
+
                     // 如果是未替换的类型变量，则认为是使用了原始类型
                     if (!foundInMap) {
                         return resolvedType.substring(0, resolvedType.indexOf("<"));
@@ -208,7 +208,7 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
                 }
             }
         }
-        
+
         return resolvedType;
     }
 
@@ -238,7 +238,7 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
         List<String> genericTypeClassNameList = new ArrayList<>();
         Pattern pattern = Pattern.compile("^[^<]*<(.*)>");
         Matcher matcher = pattern.matcher(className);
-        
+
         // 从类名中提取基础类名（不带泛型）
         String baseClassName = className;
         if (matcher.find()) {
@@ -249,13 +249,13 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
             }
             baseClassName = className.substring(0, className.indexOf("<"));
         }
-        
+
         PsiClass psiClass = JavaPsiFacade.getInstance(expression.getProject()).findClass(baseClassName, expression.getResolveScope());
         assert psiClass != null;
-        
+
         // 检查类定义是否包含泛型参数，无论实例化时是否指定了具体泛型
         hasGenericType = psiClass.getTypeParameters().length > 0;
-        
+
         // Gets the generic placeholder in the class
         PsiTypeParameter[] typeParameters = psiClass.getTypeParameters();
         if (!genericTypeClassNameList.isEmpty() && typeParameters.length == genericTypeClassNameList.size()) {
@@ -314,4 +314,30 @@ public abstract class BaseGeneratePostfixTemplate extends PostfixTemplateWithExp
      * @return the modified template.
      */
     protected abstract Template modifyTemplate(Template template);
+
+    /**
+     * Get the simple class name from an expression.
+     * Extracts the class name without package and without generics.
+     *
+     * @param expression the expression to get class name from
+     * @return the simple class name
+     */
+    protected String getSimpleClassName(@NotNull PsiElement expression) {
+        String className = "";
+        if (expression instanceof PsiExpression) {
+            PsiType type = ((PsiExpression) expression).getType();
+            if (type != null) {
+                String fullClassName = type.getCanonicalText();
+                // Extract base class name without generics
+                int genericIndex = fullClassName.indexOf("<");
+                className = genericIndex > 0 ? fullClassName.substring(0, genericIndex) : fullClassName;
+                // Get simple name if it's a fully qualified name
+                int lastDotIndex = className.lastIndexOf(".");
+                if (lastDotIndex > 0) {
+                    className = className.substring(lastDotIndex + 1);
+                }
+            }
+        }
+        return className;
+    }
 }

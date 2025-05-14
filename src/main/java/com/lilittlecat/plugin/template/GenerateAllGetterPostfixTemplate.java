@@ -33,6 +33,15 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
                                          @NotNull List<PsiMethod> methods,
                                          @NotNull List<PsiField> fields) {
         StringBuilder builder = new StringBuilder();
+
+        if (methods.isEmpty()) {
+            String className = getSimpleClassName(expression);
+
+            builder.append("// No getter methods found in `").append(className)
+                   .append("` class for ").append(expression.getText()).append("\n");
+            builder.append("$END$");
+            return builder.toString();
+        }
         // handle public static field
         for (PsiField field : fields) {
             if (field.hasModifierProperty(PsiModifier.STATIC) && field.hasModifierProperty(PsiModifier.PUBLIC)) {
@@ -50,16 +59,16 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
                 continue;
             }
             String methodName = method.getName();
-            
+
             // 解析返回类型（包括泛型）
             String returnTypeText = returnType.getCanonicalText();
             String fieldName = getFieldNameInMethod(method, GET_METHOD_TYPE);
-            
+
             // 如果字段名是特殊标记，跳过此方法
             if ("__empty__".equals(fieldName)) {
                 continue;
             }
-            
+
             // 处理返回类型中的泛型
             if (hasGenericType && returnType instanceof PsiClassType) {
                 // 获取类的所有类型参数名称
@@ -76,10 +85,10 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
                         }
                     }
                 }
-                
+
                 // 检查返回类型是否使用了类的泛型参数
                 boolean containsClassTypeParameter = false;
-                
+
                 // 针对返回类型是类型参数的情况
                 PsiClass returnClass = ((PsiClassType) returnType).resolve();
                 if (returnClass instanceof PsiTypeParameter) {
@@ -88,11 +97,11 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
                         containsClassTypeParameter = true;
                     }
                 }
-                
+
                 // 针对返回类型包含泛型的情况
                 if (returnTypeText.contains("<")) {
                     for (String paramName : classTypeParamNames) {
-                        if (returnTypeText.contains("<" + paramName + ">") || 
+                        if (returnTypeText.contains("<" + paramName + ">") ||
                             returnTypeText.contains("<" + paramName + ",") ||
                             returnTypeText.contains(", " + paramName + ">") ||
                             returnTypeText.contains(", " + paramName + ",")) {
@@ -101,7 +110,7 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
                         }
                     }
                 }
-                
+
                 // 只有当返回类型包含类的泛型参数时，才需要特殊处理
                 if (containsClassTypeParameter) {
                     Map<String, String> typeMap = genericTypeMap.get(((PsiExpression) expression).getType().getCanonicalText().split("<")[0]);
@@ -121,8 +130,8 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
                                 if (!boundText.contains(".") && !boundText.contains("<")) {
                                     String resolvedBound = resolveGenericParameterType(boundText, typeMap, null);
                                     if (!boundText.equals(resolvedBound)) {
-                                        returnTypeText = ((PsiWildcardType) returnType).isExtends() 
-                                            ? "? extends " + resolvedBound 
+                                        returnTypeText = ((PsiWildcardType) returnType).isExtends()
+                                            ? "? extends " + resolvedBound
                                             : "? super " + resolvedBound;
                                     }
                                 }
@@ -140,7 +149,7 @@ public class GenerateAllGetterPostfixTemplate extends BaseGeneratePostfixTemplat
                     }
                 }
             }
-            
+
             builder.append(returnTypeText).append(" ")
                     .append(fieldName)
                     .append(" = ").append(expression.getText()).append(".").append(methodName).append("();\n");

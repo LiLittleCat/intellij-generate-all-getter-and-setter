@@ -35,12 +35,12 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
      * variables will be added in template.
      */
     private final List<String> variableList = new ArrayList<>();
-    
+
     /**
      * 储存方法名到变量名的映射，确保每个setter方法都有对应的变量
      */
     private final Map<String, String> methodToVariableMap = new HashMap<>();
-    
+
     /**
      * 标记模板是否只包含注释
      */
@@ -55,25 +55,34 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
         // 清除之前的映射和标记
         methodToVariableMap.clear();
         hasOnlyComments = true; // 默认假设只有注释
-        
+
+        if (methods.isEmpty()) {
+            String className = getSimpleClassName(expression);
+
+            builder.append("// No setter methods found in `").append(className)
+                   .append("` class for ").append(expression.getText()).append("\n");
+            builder.append("$END$");
+            return builder.toString();
+        }
+
         for (PsiMethod setterMethod : methods) {
             String fieldName = getFieldNameInMethod(setterMethod, SET_METHOD_TYPE);
             String methodName = setterMethod.getName();
-            
+
             if ("__empty__".equals(fieldName)) {
                 // 如果字段名是特殊标记，跳过此方法
                 continue;
             }
-            
+
             if (isNotBlank(fieldName)) {
                 boolean variableAdded = false; // 跟踪变量是否已添加
-                
+
                 // 确保方法参数类型的泛型信息得到保留
                 if (hasGenericType && setterMethod.getParameterList().getParametersCount() > 0) {
                     PsiParameter parameter = setterMethod.getParameterList().getParameters()[0];
                     PsiType paramType = parameter.getType();
                     String paramTypeText = paramType.getCanonicalText();
-                    
+
                     // 首先检查参数是否直接是类型参数(如C, T等)
                     if (paramType instanceof PsiClassType) {
                         PsiClass paramClass = ((PsiClassType) paramType).resolve();
@@ -106,7 +115,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                             }
                         }
                     }
-                    
+
                     // 然后处理包含泛型的参数类型
                     Map<String, String> typeMap = genericTypeMap.get(((PsiExpression) expression).getType().getCanonicalText().split("<")[0]);
                     if (typeMap != null && !typeMap.isEmpty() && paramTypeText.contains("<")) {
@@ -124,11 +133,11 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                                 }
                             }
                         }
-                        
+
                         // 检查参数类型是否使用了类的泛型参数
                         boolean containsClassTypeParameter = false;
                         for (String paramName : classTypeParamNames) {
-                            if (paramTypeText.contains("<" + paramName + ">") || 
+                            if (paramTypeText.contains("<" + paramName + ">") ||
                                 paramTypeText.contains("<" + paramName + ",") ||
                                 paramTypeText.contains(", " + paramName + ">") ||
                                 paramTypeText.contains(", " + paramName + ",")) {
@@ -136,7 +145,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                                 break;
                             }
                         }
-                        
+
                         // 只有当参数类型包含类的泛型参数时，才需要特殊处理
                         if (containsClassTypeParameter) {
                             // 首先检查是否是原始类型
@@ -153,7 +162,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                                                                  .map(String::trim)
                                                                  .anyMatch(s -> !s.contains(".") && classTypeParamNames.contains(s));
                                 }
-                                
+
                                 if (containsUnresolvedTypeVar) {
                                     // 包含未解析的类型变量，添加注释
                                     builder.append("// Generic type in ").append(paramTypeText)
@@ -205,11 +214,11 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                                 }
                             }
                         }
-                        
+
                         // 检查参数类型是否使用了类的泛型参数
                         boolean containsClassTypeParameter = false;
                         for (String paramName : classTypeParamNames) {
-                            if (paramTypeText.contains("<" + paramName + ">") || 
+                            if (paramTypeText.contains("<" + paramName + ">") ||
                                 paramTypeText.contains("<" + paramName + ",") ||
                                 paramTypeText.contains(", " + paramName + ">") ||
                                 paramTypeText.contains(", " + paramName + ",")) {
@@ -217,7 +226,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                                 break;
                             }
                         }
-                        
+
                         if (containsClassTypeParameter) {
                             // 包含类的泛型参数但没有类型映射，添加注释
                             builder.append("// Cannot resolve generic types in ").append(paramTypeText)
@@ -236,7 +245,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                         }
                     }
                 }
-                
+
                 // 确保变量被添加
                 if (!variableAdded) {
                     variableList.add(fieldName);
@@ -266,7 +275,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                 // 不要在模板中添加警告，它会使模板非法
                 return template;
             }
-            
+
             // 确保变量列表不为空
             if (variableList.isEmpty() && methodToVariableMap.isEmpty()) {
                 template.addVariable("value", "\"\"", "\"\"", true);
@@ -281,7 +290,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                     }
                     template.addVariable(varName, varValue, varValue, true);
                 }
-                
+
                 // 再确保methodToVariableMap中的所有变量都添加了
                 for (Map.Entry<String, String> entry : methodToVariableMap.entrySet()) {
                     String varValue = entry.getValue();
@@ -294,7 +303,7 @@ public class GenerateAllSetterWithoutDefaultValuePostfixTemplate extends BaseGen
                             varName = varValue;
                         }
                         // 检查该变量是否已添加(避免重复添加)
-                        if (!variableList.stream().anyMatch(v -> 
+                        if (!variableList.stream().anyMatch(v ->
                                 v.equals(varName) || (v.contains(" // Type: ") && v.startsWith(varName + " // Type: ")))) {
                             template.addVariable(varName, "\"\"", "\"\"", true);
                         }

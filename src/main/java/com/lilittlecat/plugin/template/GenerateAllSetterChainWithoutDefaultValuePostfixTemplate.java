@@ -57,7 +57,11 @@ public class GenerateAllSetterChainWithoutDefaultValuePostfixTemplate extends Ba
         hasOnlyComments = true; // 默认假设只有注释
 
         if (methods.isEmpty()) {
-            builder.append("// No setter methods found in ").append(expression.getText()).append("\n");
+            String className = getSimpleClassName(expression);
+
+            builder.append("// No setter methods found in `").append(className)
+                   .append("` class for ").append(expression.getText())
+                   .append(" or setter methods don't return the object itself (required for chain-style)\n");
             builder.append("$END$");
             return builder.toString();
         }
